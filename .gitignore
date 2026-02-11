@@ -27,3 +27,6 @@ npm-debug.log*
 
 # Kernel session data (local only)
 .kernel/
+
+# Claude Code local settings
+.claude/settings.local.json
