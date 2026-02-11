@@ -29,6 +29,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@clack/prompts": "^1.0.0",
     "@napi-rs/keyring": "^1.2.0",
     "@onkernel/sdk": "^0.33.0",
     "commander": "^12.0.0",

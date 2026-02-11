@@ -1,3 +1,4 @@
+import * as p from "@clack/prompts";
 import { getKernelClient } from "../kernel/client.js";
 
 export interface QuickAddOptions {
@@ -12,7 +13,7 @@ const VALID_MEALS = ["breakfast", "lunch", "dinner", "snacks"];
 export async function quickAdd(options: QuickAddOptions): Promise<void> {
   // Validate at least one macro is provided
   if (!options.protein && !options.carbs && !options.fat) {
-    console.error("Error: At least one macro (-p, -c, or -f) is required");
+    p.log.error("At least one macro (-p, -c, or -f) is required");
     process.exit(1);
   }
 
@@ -20,8 +21,8 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
   if (options.meal) {
     const normalizedMeal = options.meal.toLowerCase();
     if (!VALID_MEALS.includes(normalizedMeal)) {
-      console.error(
-        `Error: Invalid meal "${options.meal}". Use: Breakfast, Lunch, Dinner, or Snacks`
+      p.log.error(
+        `Invalid meal "${options.meal}". Use: Breakfast, Lunch, Dinner, or Snacks`
       );
       process.exit(1);
     }
@@ -37,7 +38,11 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     ? options.meal.charAt(0).toUpperCase() + options.meal.slice(1).toLowerCase()
     : "Uncategorized";
 
-  console.log(`Adding quick entry: ${parts.join(", ")} → ${mealLabel}`);
+  p.intro("crono quick-add");
+  p.log.info(`Adding: ${parts.join(", ")} → ${mealLabel}`);
+
+  const s = p.spinner();
+  s.start("Logging to Cronometer...");
 
   try {
     const kernel = await getKernelClient();
@@ -48,9 +53,11 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
       meal: options.meal,
     });
 
-    console.log(`✓ Added: ${parts.join(", ")} → ${mealLabel}`);
+    s.stop("Logged to Cronometer.");
+    p.outro(`Added: ${parts.join(", ")} → ${mealLabel}`);
   } catch (error) {
-    console.error("Failed to add entry:", error);
+    s.stop("Failed.");
+    p.log.error(`Failed to add entry: ${error}`);
     process.exit(1);
   }
 }

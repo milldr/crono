@@ -8,8 +8,8 @@
  * action, and tears down. No profiles or persistent sessions needed.
  */
 
+import * as p from "@clack/prompts";
 import Kernel from "@onkernel/sdk";
-import { createInterface } from "readline";
 import { getCredential } from "../credentials.js";
 import {
   buildAutoLoginCode,
@@ -105,7 +105,7 @@ async function autoLogin(
   username: string,
   password: string
 ): Promise<void> {
-  console.log("Logging into Cronometer...");
+  p.log.step("Logging into Cronometer...");
 
   const result = await kernel.browsers.playwright.execute(sessionId, {
     code: buildAutoLoginCode(username, password),
@@ -126,7 +126,7 @@ async function autoLogin(
     );
   }
 
-  console.log("Logged in.");
+  p.log.step("Logged in.");
 }
 
 /**
@@ -136,14 +136,11 @@ async function manualLogin(
   kernel: Kernel,
   browser: { session_id: string; browser_live_view_url?: string | null }
 ): Promise<void> {
-  console.log("No stored Cronometer credentials found.");
-  console.log(
-    "Tip: run `crono login` to save credentials for automatic login.\n"
-  );
+  p.log.warn("No stored Cronometer credentials found.");
+  p.log.info("Tip: run `crono login` to save credentials for automatic login.");
 
   if (browser.browser_live_view_url) {
-    console.log("Browser live view:");
-    console.log(`  ${browser.browser_live_view_url}\n`);
+    p.note(browser.browser_live_view_url, "Browser Live View");
   }
 
   await kernel.browsers.playwright.execute(browser.session_id, {
@@ -151,8 +148,16 @@ async function manualLogin(
     timeout_sec: 30,
   });
 
-  console.log("Please log into Cronometer in the browser above.");
-  await waitForEnter("Press Enter once you've logged in...");
+  p.log.info("Please log into Cronometer in the browser above.");
+
+  const confirmation = await p.text({
+    message: "Press Enter once you've logged in...",
+    defaultValue: "",
+  });
+
+  if (p.isCancel(confirmation)) {
+    throw new Error("Login cancelled by user.");
+  }
 
   const result = await kernel.browsers.playwright.execute(browser.session_id, {
     code: buildLoginCheckCode(),
@@ -171,21 +176,5 @@ async function manualLogin(
     );
   }
 
-  console.log("Logged in.");
-}
-
-/**
- * Prompt the user to press Enter. Uses Node's readline for clean TTY handling.
- */
-function waitForEnter(prompt: string): Promise<void> {
-  return new Promise((resolve) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    rl.question(prompt, () => {
-      rl.close();
-      resolve();
-    });
-  });
+  p.log.step("Logged in.");
 }
