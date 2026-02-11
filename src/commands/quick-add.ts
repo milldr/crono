@@ -42,18 +42,21 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
   p.log.info(`Adding: ${parts.join(", ")} → ${mealLabel}`);
 
   const s = p.spinner();
-  s.start("Logging to Cronometer...");
+  s.start("Connecting...");
 
   try {
     const kernel = await getKernelClient();
-    await kernel.addQuickEntry({
-      protein: options.protein,
-      carbs: options.carbs,
-      fat: options.fat,
-      meal: options.meal,
-    });
+    await kernel.addQuickEntry(
+      {
+        protein: options.protein,
+        carbs: options.carbs,
+        fat: options.fat,
+        meal: options.meal,
+      },
+      (msg) => s.message(msg)
+    );
 
-    s.stop("Logged to Cronometer.");
+    s.stop("Done.");
     p.outro(`Added: ${parts.join(", ")} → ${mealLabel}`);
   } catch (error) {
     s.stop("Failed.");

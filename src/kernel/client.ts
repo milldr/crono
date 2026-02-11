@@ -26,7 +26,10 @@ export interface MacroEntry {
 }
 
 export interface KernelClient {
-  addQuickEntry(entry: MacroEntry): Promise<void>;
+  addQuickEntry(
+    entry: MacroEntry,
+    onStatus?: (msg: string) => void
+  ): Promise<void>;
 }
 
 /**
@@ -50,7 +53,8 @@ export async function getKernelClient(): Promise<KernelClient> {
   const kernel = new Kernel();
 
   return {
-    addQuickEntry: (entry: MacroEntry) => addQuickEntry(kernel, entry),
+    addQuickEntry: (entry: MacroEntry, onStatus?: (msg: string) => void) =>
+      addQuickEntry(kernel, entry, onStatus),
   };
 }
 
@@ -58,7 +62,11 @@ export async function getKernelClient(): Promise<KernelClient> {
  * Execute the quick-add automation on Cronometer.
  * Creates a browser, logs in, performs the quick-add, then tears down.
  */
-async function addQuickEntry(kernel: Kernel, entry: MacroEntry): Promise<void> {
+async function addQuickEntry(
+  kernel: Kernel,
+  entry: MacroEntry,
+  onStatus?: (msg: string) => void
+): Promise<void> {
   const username = getCredential("cronometer-username");
   const password = getCredential("cronometer-password");
   const hasAutoCreds = !!(username && password);
@@ -72,12 +80,13 @@ async function addQuickEntry(kernel: Kernel, entry: MacroEntry): Promise<void> {
   try {
     // Log in to Cronometer
     if (hasAutoCreds) {
-      await autoLogin(kernel, browser.session_id, username, password);
+      await autoLogin(kernel, browser.session_id, username, password, onStatus);
     } else {
       await manualLogin(kernel, browser);
     }
 
     // Execute quick-add
+    onStatus?.("Adding quick entry...");
     const result = await kernel.browsers.playwright.execute(
       browser.session_id,
       { code: buildQuickAddCode(entry), timeout_sec: 60 }
@@ -103,9 +112,10 @@ async function autoLogin(
   kernel: Kernel,
   sessionId: string,
   username: string,
-  password: string
+  password: string,
+  onStatus?: (msg: string) => void
 ): Promise<void> {
-  p.log.step("Logging into Cronometer...");
+  onStatus?.("Logging into Cronometer...");
 
   const result = await kernel.browsers.playwright.execute(sessionId, {
     code: buildAutoLoginCode(username, password),
@@ -125,8 +135,6 @@ async function autoLogin(
         "Your credentials may be incorrect. Run `crono login` to update them."
     );
   }
-
-  p.log.step("Logged in.");
 }
 
 /**
