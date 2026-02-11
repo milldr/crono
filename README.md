@@ -53,8 +53,6 @@ crono quick-add -p 30 -c 100 -f 20 -m Dinner
 ```
 ┌  crono quick-add
 │
-●  Adding: 30g protein, 100g carbs, 20g fat → Dinner
-│
 ◒  Logging into Cronometer...
 ◇  Done.
 │

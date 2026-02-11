@@ -39,7 +39,6 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     : "Uncategorized";
 
   p.intro("crono quick-add");
-  p.log.info(`Adding: ${parts.join(", ")} → ${mealLabel}`);
 
   const s = p.spinner();
   s.start("Connecting...");
