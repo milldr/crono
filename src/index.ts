@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import { login } from "./commands/login.js";
 import { quickAdd } from "./commands/quick-add.js";
 
 const program = new Command();
@@ -9,6 +10,13 @@ program
   .name("crono")
   .description("CLI for Cronometer automation via Kernel.sh")
   .version("0.1.0");
+
+program
+  .command("login")
+  .description("Set up Kernel API key and Cronometer credentials")
+  .action(async () => {
+    await login();
+  });
 
 program
   .command("quick-add")
