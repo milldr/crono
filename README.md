@@ -30,11 +30,11 @@ crono quick-add [options]
 
 **Options:**
 
-| Flag | Long | Description |
-|------|------|-------------|
-| `-p` | `--protein <g>` | Grams of protein |
-| `-c` | `--carbs <g>` | Grams of carbohydrates |
-| `-f` | `--fat <g>` | Grams of fat |
+| Flag | Long            | Description                                      |
+| ---- | --------------- | ------------------------------------------------ |
+| `-p` | `--protein <g>` | Grams of protein                                 |
+| `-c` | `--carbs <g>`   | Grams of carbohydrates                           |
+| `-f` | `--fat <g>`     | Grams of fat                                     |
 | `-m` | `--meal <name>` | Meal category (Breakfast, Lunch, Dinner, Snacks) |
 
 At least one macro flag (`-p`, `-c`, or `-f`) is required.

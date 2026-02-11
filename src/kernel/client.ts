@@ -152,10 +152,7 @@ async function verifySession(kernel: Kernel): Promise<void> {
 /**
  * Execute the quick-add automation on Cronometer.
  */
-async function addQuickEntry(
-  kernel: Kernel,
-  entry: MacroEntry
-): Promise<void> {
+async function addQuickEntry(kernel: Kernel, entry: MacroEntry): Promise<void> {
   const browser = await kernel.browsers.create({
     profile: { name: PROFILE_NAME, save_changes: true },
     headless: true,
@@ -170,16 +167,12 @@ async function addQuickEntry(
     );
 
     if (!result.success) {
-      throw new Error(
-        `Automation failed: ${result.error ?? "Unknown error"}`
-      );
+      throw new Error(`Automation failed: ${result.error ?? "Unknown error"}`);
     }
 
     const data = result.result as { success: boolean; error?: string };
     if (!data.success) {
-      throw new Error(
-        `Quick add failed: ${data.error ?? "Unknown error"}`
-      );
+      throw new Error(`Quick add failed: ${data.error ?? "Unknown error"}`);
     }
   } finally {
     // Delete browser to persist profile state

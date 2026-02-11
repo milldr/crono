@@ -17,20 +17,21 @@ crono quick-add [options]
 
 ### Options
 
-| Flag | Long Form | Type | Required | Default | Description |
-|------|-----------|------|----------|---------|-------------|
-| `-p` | `--protein` | number | conditional | - | Grams of protein |
-| `-c` | `--carbs` | number | conditional | - | Grams of carbohydrates |
-| `-f` | `--fat` | number | conditional | - | Grams of fat |
-| `-m` | `--meal` | string | no | uncategorized | Meal category |
+| Flag | Long Form   | Type   | Required    | Default       | Description            |
+| ---- | ----------- | ------ | ----------- | ------------- | ---------------------- |
+| `-p` | `--protein` | number | conditional | -             | Grams of protein       |
+| `-c` | `--carbs`   | number | conditional | -             | Grams of carbohydrates |
+| `-f` | `--fat`     | number | conditional | -             | Grams of fat           |
+| `-m` | `--meal`    | string | no          | uncategorized | Meal category          |
 
 **Validation:** At least one of `-p`, `-c`, or `-f` must be provided.
 
 ### Meal Categories
 
 Valid values for `--meal`:
+
 - `Breakfast`
-- `Lunch`  
+- `Lunch`
 - `Dinner`
 - `Snacks`
 
@@ -65,12 +66,12 @@ crono quick-add --protein 25 --carbs 40 --fat 10 --meal Lunch
 
 ### Error Handling
 
-| Error | User Message |
-|-------|--------------|
-| No macros provided | "At least one macro (-p, -c, or -f) is required" |
-| Invalid meal | "Invalid meal. Use: Breakfast, Lunch, Dinner, or Snacks" |
-| Not logged in | "Please log in first. Run: crono login" |
-| Kernel unavailable | "Could not connect to Kernel. Ensure it's running." |
+| Error              | User Message                                             |
+| ------------------ | -------------------------------------------------------- |
+| No macros provided | "At least one macro (-p, -c, or -f) is required"         |
+| Invalid meal       | "Invalid meal. Use: Breakfast, Lunch, Dinner, or Snacks" |
+| Not logged in      | "Please log in first. Run: crono login"                  |
+| Kernel unavailable | "Could not connect to Kernel. Ensure it's running."      |
 
 ## Success Output
 

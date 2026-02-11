@@ -7,6 +7,7 @@
 ## Problem Statement
 
 Cronometer lacks a public API. Users who want to:
+
 - Log food from scripts or automation
 - Integrate nutrition tracking with other tools
 - Batch-process dietary data
@@ -16,6 +17,7 @@ Cronometer lacks a public API. Users who want to:
 ## Solution
 
 crono uses [Kernel.sh](https://kernel.sh) for browser automation to:
+
 1. Authenticate with Cronometer (session persisted)
 2. Execute actions via the web UI programmatically
 3. Expose a clean CLI interface for common tasks
@@ -24,17 +26,18 @@ crono uses [Kernel.sh](https://kernel.sh) for browser automation to:
 
 Kernel.sh is a browser automation platform designed for AI agents. Key benefits:
 
-| Feature | Benefit for crono |
-|---------|-------------------|
-| **Session persistence** | Log in once, reuse session across commands |
-| **Profiles** | Isolate crono browser state from personal browsing |
-| **Headless + headed modes** | Debug visually, run headless in production |
-| **SDK integration** | Clean TypeScript API for page interaction |
-| **MCP server** | Future: expose crono commands to AI assistants |
+| Feature                     | Benefit for crono                                  |
+| --------------------------- | -------------------------------------------------- |
+| **Session persistence**     | Log in once, reuse session across commands         |
+| **Profiles**                | Isolate crono browser state from personal browsing |
+| **Headless + headed modes** | Debug visually, run headless in production         |
+| **SDK integration**         | Clean TypeScript API for page interaction          |
+| **MCP server**              | Future: expose crono commands to AI assistants     |
 
 ### Alternative Considered
 
 Raw Playwright was considered but rejected because:
+
 - Manual session management required
 - No built-in profile isolation
 - Kernel provides higher-level abstractions suited for this use case
@@ -42,16 +45,19 @@ Raw Playwright was considered but rejected because:
 ## Goals
 
 ### MVP (v0.1)
+
 - [ ] `crono quick-add` — Log raw macros (protein/carbs/fat) to diary
 - [ ] Session persistence — Authenticate once, reuse across runs
 - [ ] Meal assignment — Optionally assign entries to Breakfast/Lunch/Dinner/Snacks
 
 ### v0.2
+
 - [ ] `crono search <food>` — Search Cronometer's food database
 - [ ] `crono add <food>` — Add a specific food by name
 - [ ] `crono summary` — Get today's macro totals
 
 ### v0.3+
+
 - [ ] `crono weight <lbs>` — Log body weight
 - [ ] `crono export` — Export diary data (CSV/JSON)
 - [ ] `crono targets` — View/set nutrition targets
@@ -100,14 +106,14 @@ Raw Playwright was considered but rejected because:
 
 ## Tech Stack
 
-| Component | Technology | Rationale |
-|-----------|------------|-----------|
-| Language | TypeScript | Kernel SDK is JS/TS native |
-| CLI Framework | Commander.js | Simple, well-documented |
-| Browser Automation | Kernel.sh | Session persistence, profiles |
-| Testing | Vitest | Fast, modern, TS-native |
-| Linting | ESLint + Prettier | Standard tooling |
-| CI | GitHub Actions | Ubuntu runners |
+| Component          | Technology        | Rationale                     |
+| ------------------ | ----------------- | ----------------------------- |
+| Language           | TypeScript        | Kernel SDK is JS/TS native    |
+| CLI Framework      | Commander.js      | Simple, well-documented       |
+| Browser Automation | Kernel.sh         | Session persistence, profiles |
+| Testing            | Vitest            | Fast, modern, TS-native       |
+| Linting            | ESLint + Prettier | Standard tooling              |
+| CI                 | GitHub Actions    | Ubuntu runners                |
 
 ## User Experience
 

@@ -30,6 +30,7 @@ Kernel.sh is a browser automation platform. Key concepts:
 3. **SDK** — TypeScript API for page interaction
 
 Our flow:
+
 ```
 CLI Command → Kernel Client → Kernel.sh SDK → Browser → Cronometer
 ```
@@ -40,6 +41,7 @@ On subsequent runs: session reused, no login needed.
 ## Current State
 
 **Implemented:**
+
 - [x] Project scaffolding
 - [x] CLI structure with Commander.js
 - [x] `quick-add` command (validation, argument parsing)
@@ -47,6 +49,7 @@ On subsequent runs: session reused, no login needed.
 - [x] CI pipeline (GitHub Actions, Ubuntu, Node 18/20/22)
 
 **TODO:**
+
 - [ ] Kernel.sh SDK integration in `src/kernel/client.ts`
 - [ ] Cronometer login flow
 - [ ] Session persistence
@@ -62,6 +65,7 @@ crono quick-add -p 30 -c 100 -f 20 -m Dinner
 ```
 
 Flags:
+
 - `-p, --protein <g>` — Grams of protein
 - `-c, --carbs <g>` — Grams of carbs
 - `-f, --fat <g>` — Grams of fat
@@ -72,6 +76,7 @@ Validation: At least one macro required.
 ### Cronometer UI Flow (for automation)
 
 To add a quick entry in Cronometer's web UI:
+
 1. Navigate to `cronometer.com/diary`
 2. Click "+ Add Food" button
 3. Click "Quick Add" tab

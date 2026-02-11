@@ -125,7 +125,10 @@ describe("buildQuickAddCode", () => {
 describe("SELECTORS", () => {
   it("should have primary and fallback selectors for each element", () => {
     for (const [name, sel] of Object.entries(SELECTORS)) {
-      expect(sel.primary, `${name} should have a primary selector`).toBeTruthy();
+      expect(
+        sel.primary,
+        `${name} should have a primary selector`
+      ).toBeTruthy();
       expect(
         sel.fallbacks.length,
         `${name} should have fallback selectors`

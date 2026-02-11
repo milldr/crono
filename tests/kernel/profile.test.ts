@@ -2,19 +2,29 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ensureProfile, isFirstRun } from "../../src/kernel/profile.js";
 
 // Minimal mock that matches the shape our functions expect
-function createMockKernel(overrides: {
-  retrieve?: () => Promise<unknown>;
-  create?: () => Promise<unknown>;
-} = {}) {
+function createMockKernel(
+  overrides: {
+    retrieve?: () => Promise<unknown>;
+    create?: () => Promise<unknown>;
+  } = {}
+) {
   return {
     profiles: {
-      retrieve: overrides.retrieve ?? vi.fn().mockResolvedValue({ id: "1", name: "crono" }),
-      create: overrides.create ?? vi.fn().mockResolvedValue({ id: "1", name: "crono" }),
+      retrieve:
+        overrides.retrieve ??
+        vi.fn().mockResolvedValue({ id: "1", name: "crono" }),
+      create:
+        overrides.create ??
+        vi.fn().mockResolvedValue({ id: "1", name: "crono" }),
       list: vi.fn(),
       delete: vi.fn(),
       download: vi.fn(),
     },
-    browsers: { create: vi.fn(), deleteByID: vi.fn(), playwright: { execute: vi.fn() } },
+    browsers: {
+      create: vi.fn(),
+      deleteByID: vi.fn(),
+      playwright: { execute: vi.fn() },
+    },
   };
 }
 
@@ -78,6 +88,8 @@ describe("ensureProfile", () => {
       create: vi.fn().mockRejectedValue(makeError(500, "Server error")),
     });
 
-    await expect(ensureProfile(kernel as never)).rejects.toThrow("Server error");
+    await expect(ensureProfile(kernel as never)).rejects.toThrow(
+      "Server error"
+    );
   });
 });
