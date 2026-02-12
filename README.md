@@ -6,6 +6,9 @@ Cronometer has no public API, so crono automates the web UI through Kernel.sh br
 
 ![crono quick-add demo](demo.gif)
 
+> [!TIP]
+> If you find crono useful, consider leaving a tip on [Ko-fi](https://ko-fi.com/milldr) ☕
+
 ## Quickstart
 
 ### 1. Install
