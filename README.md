@@ -145,6 +145,49 @@ crono weight -r 7d --json
 # → [{"date":"2026-02-11","weight":212.5,"unit":"lbs"}, ...]
 ```
 
+### `crono diary`
+
+View daily nutrition totals (calories, protein, carbs, fat) from Cronometer. Defaults to today if no date or range is specified.
+
+```bash
+crono diary [options]
+```
+
+**Options:**
+
+| Flag | Long              | Description                               |
+| ---- | ----------------- | ----------------------------------------- |
+| `-d` | `--date <date>`   | Date (YYYY-MM-DD)                         |
+| `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD) |
+|      | `--json`          | Output as JSON                            |
+
+`-d` and `-r` are mutually exclusive.
+
+**Examples:**
+
+```bash
+# Today's nutrition
+crono diary
+# → 1847 kcal | P: 168g | C: 142g | F: 58g
+
+# Specific date
+crono diary -d 2026-02-05
+
+# Last 7 days
+crono diary -r 7d
+# → 2026-02-11: 1847 kcal | P: 168g | C: 142g | F: 58g
+# → 2026-02-10: 2103 kcal | P: 155g | C: 200g | F: 72g
+# → ...
+
+# JSON output for scripting
+crono diary --json
+# → {"date":"2026-02-11","calories":1847,"protein":168,"carbs":142,"fat":58}
+
+# Range as JSON
+crono diary -r 7d --json
+# → [{"date":"2026-02-11","calories":1847,"protein":168,"carbs":142,"fat":58}, ...]
+```
+
 ## Requirements
 
 - Node.js 18+
@@ -162,6 +205,7 @@ npm install
 npm run dev -- login
 npm run dev -- quick-add -p 30
 npm run dev -- weight -r 7d
+npm run dev -- diary
 
 # Run tests
 npm test

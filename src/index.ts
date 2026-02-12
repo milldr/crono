@@ -3,6 +3,7 @@
 import { Command } from "commander";
 import { login } from "./commands/login.js";
 import { quickAdd } from "./commands/quick-add.js";
+import { diary } from "./commands/diary.js";
 import { weight } from "./commands/weight.js";
 
 const program = new Command();
@@ -41,6 +42,16 @@ program
   .option("--json", "Output as JSON")
   .action(async (options) => {
     await weight(options);
+  });
+
+program
+  .command("diary")
+  .description("View daily nutrition totals from Cronometer")
+  .option("-d, --date <date>", "Date (YYYY-MM-DD)")
+  .option("-r, --range <range>", "Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD)")
+  .option("--json", "Output as JSON")
+  .action(async (options) => {
+    await diary(options);
   });
 
 program.parse();

@@ -17,6 +17,7 @@ import {
   buildNavigateToLoginCode,
 } from "./login.js";
 import { buildQuickAddCode } from "./quick-add.js";
+import { buildDiaryCode } from "./diary.js";
 import { buildWeightCode } from "./weight.js";
 
 export interface MacroEntry {
@@ -32,6 +33,14 @@ export interface WeightData {
   unit: string;
 }
 
+export interface DiaryData {
+  date: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 export interface KernelClient {
   addQuickEntry(
     entry: MacroEntry,
@@ -41,6 +50,10 @@ export interface KernelClient {
     dates: string[],
     onStatus?: (msg: string) => void
   ): Promise<WeightData[]>;
+  getDiary(
+    dates: string[],
+    onStatus?: (msg: string) => void
+  ): Promise<DiaryData[]>;
 }
 
 /**
@@ -68,6 +81,8 @@ export async function getKernelClient(): Promise<KernelClient> {
       addQuickEntry(kernel, entry, onStatus),
     getWeight: (dates: string[], onStatus?: (msg: string) => void) =>
       getWeight(kernel, dates, onStatus),
+    getDiary: (dates: string[], onStatus?: (msg: string) => void) =>
+      getDiary(kernel, dates, onStatus),
   };
 }
 
@@ -165,6 +180,61 @@ async function getWeight(
     };
     if (!data.success) {
       throw new Error(`Weight read failed: ${data.error ?? "Unknown error"}`);
+    }
+
+    return data.entries ?? [];
+  } finally {
+    try {
+      await kernel.browsers.deleteByID(browser.session_id);
+    } catch {
+      // Browser may already be cleaned up by Kernel
+    }
+  }
+}
+
+/**
+ * Execute the diary nutrition scraping automation on Cronometer.
+ * Creates a browser, logs in, reads nutrition data, then tears down.
+ */
+async function getDiary(
+  kernel: Kernel,
+  dates: string[],
+  onStatus?: (msg: string) => void
+): Promise<DiaryData[]> {
+  const username = getCredential("cronometer-username");
+  const password = getCredential("cronometer-password");
+  const hasAutoCreds = !!(username && password);
+
+  const browser = await kernel.browsers.create({
+    headless: hasAutoCreds,
+    stealth: true,
+    timeout_seconds: hasAutoCreds ? 120 : 300,
+  });
+
+  try {
+    if (hasAutoCreds) {
+      await autoLogin(kernel, browser.session_id, username, password, onStatus);
+    } else {
+      await manualLogin(kernel, browser);
+    }
+
+    onStatus?.("Reading diary data...");
+    const result = await kernel.browsers.playwright.execute(
+      browser.session_id,
+      { code: buildDiaryCode(dates), timeout_sec: 60 }
+    );
+
+    if (!result.success) {
+      throw new Error(`Automation failed: ${result.error ?? "Unknown error"}`);
+    }
+
+    const data = result.result as {
+      success: boolean;
+      entries?: DiaryData[];
+      error?: string;
+    };
+    if (!data.success) {
+      throw new Error(`Diary read failed: ${data.error ?? "Unknown error"}`);
     }
 
     return data.entries ?? [];
