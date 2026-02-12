@@ -216,6 +216,12 @@ npm test
 npm run build
 ```
 
+## Support
+
+I build and maintain projects like crono in my free time as personal hobbies. They're completely free and always will be. If you find this useful and want to show some support, feel free to buy me a coffee:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
+
 ## License
 
 MIT
