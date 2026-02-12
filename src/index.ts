@@ -5,6 +5,7 @@ import { login } from "./commands/login.js";
 import { quickAdd } from "./commands/quick-add.js";
 import { diary } from "./commands/diary.js";
 import { weight } from "./commands/weight.js";
+import { exportCmd } from "./commands/export.js";
 
 const program = new Command();
 
@@ -52,6 +53,17 @@ program
   .option("--json", "Output as JSON")
   .action(async (options) => {
     await diary(options);
+  });
+
+program
+  .command("export <type>")
+  .description("Export data from Cronometer (nutrition, exercises, biometrics)")
+  .option("-d, --date <date>", "Date (YYYY-MM-DD)")
+  .option("-r, --range <range>", "Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD)")
+  .option("--csv", "Output as CSV")
+  .option("--json", "Output as JSON")
+  .action(async (type, options) => {
+    await exportCmd(type, options);
   });
 
 program.parse();

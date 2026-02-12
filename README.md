@@ -188,6 +188,63 @@ crono diary -r 7d --json
 # → [{"date":"2026-02-11","calories":1847,"protein":168,"carbs":142,"fat":58}, ...]
 ```
 
+### `crono export`
+
+Export data directly from Cronometer's API — no browser automation, much faster than `diary` or `weight`.
+
+```bash
+crono export <type> [options]
+```
+
+**Types:**
+
+| Type         | Description                         |
+| ------------ | ----------------------------------- |
+| `nutrition`  | Daily nutrition totals (macros)     |
+| `exercises`  | Exercise entries with duration/cals |
+| `biometrics` | Biometric measurements (weight, BP) |
+
+**Options:**
+
+| Flag | Long              | Description                               |
+| ---- | ----------------- | ----------------------------------------- |
+| `-d` | `--date <date>`   | Date (YYYY-MM-DD)                         |
+| `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD) |
+|      | `--csv`           | Output as raw CSV                         |
+|      | `--json`          | Output as JSON                            |
+
+`-d` and `-r` are mutually exclusive. `--csv` and `--json` are mutually exclusive.
+
+**Examples:**
+
+```bash
+# Today's nutrition
+crono export nutrition
+# → 1847 kcal | P: 168g | C: 142g | F: 58g
+
+# Last 7 days of nutrition as JSON
+crono export nutrition -r 7d --json
+
+# Today's exercises
+crono export exercises
+# → Running: 30 min, 350 kcal
+
+# Biometrics for last 30 days
+crono export biometrics -r 30d
+# → 2026-02-11: Weight: 212.5 lbs
+# → 2026-02-09: Blood Pressure: 120/80 mmHg
+
+# Raw CSV export
+crono export nutrition -r 30d --csv
+```
+
+**GWT overrides:** If Cronometer updates break the export, override GWT values in `~/.config/crono/config.json` or via environment variables:
+
+```bash
+export CRONO_GWT_PERMUTATION=<new-value>
+export CRONO_GWT_HEADER=<new-value>
+```
+
 ## Requirements
 
 - Node.js 18+
