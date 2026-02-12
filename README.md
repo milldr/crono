@@ -11,7 +11,7 @@ Cronometer has no public API, so crono automates the web UI through Kernel.sh br
 ### 1. Install
 
 ```bash
-npm install -g crono
+npm install -g @milldr/crono
 ```
 
 ### 2. Log in

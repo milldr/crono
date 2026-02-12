@@ -1,11 +1,14 @@
 {
-  "name": "crono",
+  "name": "@milldr/crono",
   "version": "0.1.0",
   "description": "CLI for Cronometer automation via Kernel.sh",
   "type": "module",
   "bin": {
-    "crono": "./dist/index.js"
+    "crono": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
@@ -32,8 +35,7 @@
     "@clack/prompts": "^1.0.0",
     "@napi-rs/keyring": "^1.2.0",
     "@onkernel/sdk": "^0.33.0",
-    "commander": "^12.0.0",
-    "crono": "^0.0.3"
+    "commander": "^12.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
