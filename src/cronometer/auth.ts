@@ -13,7 +13,7 @@ const DEFAULT_GWT_PERMUTATION = "7B121DC5483BF272B1BC1916DA9FA963";
 const DEFAULT_GWT_HEADER = "2D6A926E3729946302DC68073CB0D550";
 
 export interface CronometerSession {
-  jsessionId: string;
+  cookies: string;
   sesnonce: string;
   userId: number;
 }
@@ -26,6 +26,29 @@ export function extractCookie(headers: Headers, name: string): string | null {
     if (match) return match[1];
   }
   return null;
+}
+
+/** Collect all cookies from set-cookie headers as "name=value; name2=value2" string. */
+export function collectCookies(headers: Headers): string {
+  const cookies = headers.getSetCookie();
+  const pairs: string[] = [];
+  for (const cookie of cookies) {
+    const match = cookie.match(/^([^=]+)=([^;]+)/);
+    if (match) pairs.push(`${match[1]}=${match[2]}`);
+  }
+  return pairs.join("; ");
+}
+
+/** Merge two cookie strings, with later values overriding earlier ones. */
+export function mergeCookies(a: string, b: string): string {
+  const map = new Map<string, string>();
+  for (const str of [a, b]) {
+    for (const pair of str.split("; ")) {
+      const eq = pair.indexOf("=");
+      if (eq > 0) map.set(pair.substring(0, eq), pair.substring(eq + 1));
+    }
+  }
+  return [...map.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
 }
 
 /** Parse the anticsrf token from Cronometer's login page HTML. */
@@ -84,12 +107,13 @@ export async function login(
     throw new Error("Failed to parse anticsrf token from login page");
   }
 
+  const step1Cookies = collectCookies(loginPageRes.headers);
   const jsessionId = extractCookie(loginPageRes.headers, "JSESSIONID");
   if (!jsessionId) {
     throw new Error("No JSESSIONID cookie received from login page");
   }
 
-  // Step 2: POST /login — form login
+  // Step 2: POST /login — form login (send all step 1 cookies including anticsrf cookie)
   const formBody = new URLSearchParams({
     username,
     password,
@@ -100,26 +124,43 @@ export async function login(
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: `JSESSIONID=${jsessionId}`,
+      Cookie: step1Cookies,
     },
     body: formBody.toString(),
     redirect: "manual",
   });
 
-  const loginJson = (await loginRes.json()) as { success?: boolean };
-  if (!loginJson.success) {
-    throw new Error(
-      "Cronometer login failed. Check your credentials with: crono login"
-    );
-  }
-
   const sesnonce = extractCookie(loginRes.headers, "sesnonce");
+
+  // Check for login errors — parse body as JSON
+  const loginText = await loginRes.text();
+  try {
+    const loginJson = JSON.parse(loginText) as {
+      error?: string;
+    };
+    if (loginJson.error) {
+      throw new Error(
+        loginJson.error.includes("Too Many Attempts")
+          ? "Cronometer rate limit hit. Please wait a minute and try again."
+          : "Cronometer login failed. Check your credentials with: crono login"
+      );
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("Cronometer")) throw e;
+    // Non-JSON response (e.g. redirect body) — check sesnonce as success indicator
+    if (!sesnonce) {
+      throw new Error(
+        "Cronometer login failed. Check your credentials with: crono login"
+      );
+    }
+  }
   if (!sesnonce) {
     throw new Error("No sesnonce cookie received after login");
   }
 
   // Step 3: POST /cronometer/app — GWT authenticate
-  const cookies = `JSESSIONID=${jsessionId}; sesnonce=${sesnonce}`;
+  const step2Cookies = collectCookies(loginRes.headers);
+  const cookies = mergeCookies(step1Cookies, step2Cookies);
   const authBody = buildAuthenticateBody(header);
 
   const authRes = await fetch(`${BASE_URL}/cronometer/app`, {
@@ -136,5 +177,10 @@ export async function login(
     );
   }
 
-  return { jsessionId, sesnonce, userId };
+  // Step 3 rotates the sesnonce — use the new one if present
+  const step3Cookies = collectCookies(authRes.headers);
+  const finalCookies = mergeCookies(cookies, step3Cookies);
+  const newSesnonce = extractCookie(authRes.headers, "sesnonce") || sesnonce;
+
+  return { cookies: finalCookies, sesnonce: newSesnonce, userId };
 }

@@ -33,8 +33,8 @@ export function buildNonceBody(
 
 /** Extract the nonce from a GWT RPC response. */
 export function parseNonce(body: string): string | null {
-  // Response format: //OK["<32-char-hex>",...]
-  const match = body.match(/\/\/OK\["([a-f0-9]+)"/);
+  // Response format: //OK[1,["<32-char-hex>"],...] or //OK["<32-char-hex>",...]
+  const match = body.match(/"([a-f0-9]{32,})"/);
   return match ? match[1] : null;
 }
 
@@ -46,8 +46,6 @@ export async function generateNonce(
 ): Promise<string> {
   const permutation = gwtPermutation || DEFAULT_GWT_PERMUTATION;
   const header = gwtHeader || DEFAULT_GWT_HEADER;
-  const cookies = `JSESSIONID=${session.jsessionId}; sesnonce=${session.sesnonce}`;
-
   const body = buildNonceBody(header, session.sesnonce, session.userId);
 
   const res = await fetch(`${BASE_URL}/cronometer/app`, {
@@ -56,7 +54,7 @@ export async function generateNonce(
       "Content-Type": "text/x-gwt-rpc; charset=UTF-8",
       "X-GWT-Module-Base": "https://cronometer.com/cronometer/",
       "X-GWT-Permutation": permutation,
-      Cookie: cookies,
+      Cookie: session.cookies,
     },
     body,
   });
@@ -83,11 +81,10 @@ export async function fetchExport(
 ): Promise<string> {
   const nonce = await generateNonce(session, gwtPermutation, gwtHeader);
   const generate = EXPORT_TYPE_MAP[type];
-  const cookies = `JSESSIONID=${session.jsessionId}; sesnonce=${session.sesnonce}`;
 
   const url = `${BASE_URL}/export?nonce=${nonce}&generate=${generate}&start=${start}&end=${end}`;
   const res = await fetch(url, {
-    headers: { Cookie: cookies },
+    headers: { Cookie: session.cookies },
   });
 
   if (!res.ok) {
