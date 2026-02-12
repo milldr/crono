@@ -101,6 +101,50 @@ crono quick-add -p 30 -c 100 -f 20
 crono quick-add -p 30 -c 50 -f 15 --meal Dinner
 ```
 
+### `crono weight`
+
+Check your weight from Cronometer. Defaults to today if no date or range is specified.
+
+```bash
+crono weight [options]
+```
+
+**Options:**
+
+| Flag | Long              | Description                               |
+| ---- | ----------------- | ----------------------------------------- |
+| `-d` | `--date <date>`   | Date (YYYY-MM-DD)                         |
+| `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD) |
+|      | `--json`          | Output as JSON                            |
+
+`-d` and `-r` are mutually exclusive.
+
+**Examples:**
+
+```bash
+# Today's weight
+crono weight
+# → 212.5 lbs
+
+# Specific date
+crono weight -d 2026-02-05
+
+# Last 7 days
+crono weight -r 7d
+# → 2026-02-11: 212.5
+# → 2026-02-10: 212.7
+# → 2026-02-09: 215.5
+# → ...
+
+# JSON output for scripting
+crono weight --json
+# → {"date":"2026-02-11","weight":212.5,"unit":"lbs"}
+
+# Range as JSON
+crono weight -r 7d --json
+# → [{"date":"2026-02-11","weight":212.5,"unit":"lbs"}, ...]
+```
+
 ## Requirements
 
 - Node.js 18+
@@ -117,6 +161,7 @@ npm install
 # Run in dev mode
 npm run dev -- login
 npm run dev -- quick-add -p 30
+npm run dev -- weight -r 7d
 
 # Run tests
 npm test

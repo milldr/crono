@@ -17,6 +17,7 @@ import {
   buildNavigateToLoginCode,
 } from "./login.js";
 import { buildQuickAddCode } from "./quick-add.js";
+import { buildWeightCode } from "./weight.js";
 
 export interface MacroEntry {
   protein?: number;
@@ -25,11 +26,21 @@ export interface MacroEntry {
   meal?: string;
 }
 
+export interface WeightData {
+  date: string;
+  weight: number | null;
+  unit: string;
+}
+
 export interface KernelClient {
   addQuickEntry(
     entry: MacroEntry,
     onStatus?: (msg: string) => void
   ): Promise<void>;
+  getWeight(
+    dates: string[],
+    onStatus?: (msg: string) => void
+  ): Promise<WeightData[]>;
 }
 
 /**
@@ -55,6 +66,8 @@ export async function getKernelClient(): Promise<KernelClient> {
   return {
     addQuickEntry: (entry: MacroEntry, onStatus?: (msg: string) => void) =>
       addQuickEntry(kernel, entry, onStatus),
+    getWeight: (dates: string[], onStatus?: (msg: string) => void) =>
+      getWeight(kernel, dates, onStatus),
   };
 }
 
@@ -100,6 +113,61 @@ async function addQuickEntry(
     if (!data.success) {
       throw new Error(`Quick add failed: ${data.error ?? "Unknown error"}`);
     }
+  } finally {
+    try {
+      await kernel.browsers.deleteByID(browser.session_id);
+    } catch {
+      // Browser may already be cleaned up by Kernel
+    }
+  }
+}
+
+/**
+ * Execute the weight scraping automation on Cronometer.
+ * Creates a browser, logs in, reads weight data, then tears down.
+ */
+async function getWeight(
+  kernel: Kernel,
+  dates: string[],
+  onStatus?: (msg: string) => void
+): Promise<WeightData[]> {
+  const username = getCredential("cronometer-username");
+  const password = getCredential("cronometer-password");
+  const hasAutoCreds = !!(username && password);
+
+  const browser = await kernel.browsers.create({
+    headless: hasAutoCreds,
+    stealth: true,
+    timeout_seconds: hasAutoCreds ? 120 : 300,
+  });
+
+  try {
+    if (hasAutoCreds) {
+      await autoLogin(kernel, browser.session_id, username, password, onStatus);
+    } else {
+      await manualLogin(kernel, browser);
+    }
+
+    onStatus?.("Reading weight data...");
+    const result = await kernel.browsers.playwright.execute(
+      browser.session_id,
+      { code: buildWeightCode(dates), timeout_sec: 60 }
+    );
+
+    if (!result.success) {
+      throw new Error(`Automation failed: ${result.error ?? "Unknown error"}`);
+    }
+
+    const data = result.result as {
+      success: boolean;
+      entries?: WeightData[];
+      error?: string;
+    };
+    if (!data.success) {
+      throw new Error(`Weight read failed: ${data.error ?? "Unknown error"}`);
+    }
+
+    return data.entries ?? [];
   } finally {
     try {
       await kernel.browsers.deleteByID(browser.session_id);
