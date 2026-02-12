@@ -81,7 +81,6 @@ export function parseRange(spec: string): { start: string; end: string } {
  */
 export function dateRange(start: string, end: string): string[] {
   const dates: string[] = [];
-  const endDate = new Date(end + "T00:00:00");
   const cur = new Date(end + "T00:00:00");
   const startDate = new Date(start + "T00:00:00");
 
