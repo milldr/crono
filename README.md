@@ -1,5 +1,7 @@
 # 🍎 crono
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
+
 CLI for Cronometer automation via [Kernel.sh](https://kernel.sh).
 
 Cronometer has no public API, so crono automates the web UI through Kernel.sh browser automation. Log macros from your terminal in seconds.
@@ -270,6 +272,12 @@ npm test
 # Build
 npm run build
 ```
+
+## Support
+
+I build and maintain projects like crono in my free time as personal hobbies. They're completely free and always will be. If you find this useful and want to show some support, feel free to buy me a coffee:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
 
 ## License
 
