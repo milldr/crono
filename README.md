@@ -1,13 +1,10 @@
-# 🍎 crono
+# 🍎 crono [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
 
 CLI for Cronometer automation via [Kernel.sh](https://kernel.sh).
 
 Cronometer has no public API, so crono automates the web UI through Kernel.sh browser automation. Log macros from your terminal in seconds.
 
 ![crono quick-add demo](demo.gif)
-
-> [!TIP]
-> If you find crono useful, consider leaving a tip on [Ko-fi](https://ko-fi.com/milldr) ☕
 
 ## Quickstart
 
