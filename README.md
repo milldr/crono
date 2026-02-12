@@ -1,4 +1,6 @@
-# 🍎 crono [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
+# 🍎 crono
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/milldr)
 
 CLI for Cronometer automation via [Kernel.sh](https://kernel.sh).
 
