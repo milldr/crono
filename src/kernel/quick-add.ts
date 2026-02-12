@@ -61,7 +61,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
 
     // Navigate to diary — we're already logged in from the same session
     await page.goto('https://cronometer.com/#diary', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
     // Verify we're logged in
     const url = page.url();
@@ -107,7 +107,9 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!clicked) {
         return { success: false, error: 'Could not find meal category "' + mealLabel + '" in diary' };
       }
-      await page.waitForTimeout(500);
+      await page.waitForSelector('text="Add Food..."', { timeout: 3000 }).catch(() =>
+        page.waitForSelector('text="Add Food"', { timeout: 2000 }).catch(() => {})
+      );
 
       // Click "Add Food..." in context menu
       const addFoodClicked = await clickFirst([
@@ -119,7 +121,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!addFoodClicked) {
         return { success: false, error: 'Could not find "Add Food" in context menu' };
       }
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(200);
 
       // Wait for the "Add Food to Diary" dialog to appear
       try {
@@ -127,7 +129,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       } catch {
         return { success: false, error: 'Add Food to Diary dialog did not appear' };
       }
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
 
       // Click the search bar and type the search term
       // GWT apps often need click + keyboard.type instead of fill()
@@ -157,7 +159,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!searched) {
         return { success: false, error: 'Could not find food search bar in Add Food dialog' };
       }
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(300);
 
       // Click the SEARCH button to trigger results
       await clickFirst([
@@ -165,7 +167,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
         'button:has-text("SEARCH")',
         'button:has-text("Search")',
       ]);
-      await page.waitForTimeout(1500);
+      await page.waitForSelector('td:has-text("' + macro.searchName + '")', { timeout: 8000 }).catch(() => {});
 
       // Select the search result row (not the search input)
       // Target table rows/cells containing the macro name
@@ -189,7 +191,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!resultClicked) {
         return { success: false, error: 'No search result found for "' + macro.searchName + '"' };
       }
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(200);
 
       // Wait for the detail panel with serving size to appear
       try {
@@ -256,7 +258,8 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!addClicked) {
         return { success: false, error: 'Could not find "Add to Diary" button for "' + macro.name + '"' };
       }
-      await page.waitForTimeout(1500);
+      await page.waitForSelector('text="Add Food to Diary"', { state: 'hidden', timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(300);
     }
 
     return { success: true };

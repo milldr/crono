@@ -28,27 +28,27 @@ Kernel.sh is a browser automation platform designed for AI agents. Key benefits:
 
 | Feature                     | Benefit for crono                                  |
 | --------------------------- | -------------------------------------------------- |
-| **Session persistence**     | Log in once, reuse session across commands         |
-| **Profiles**                | Isolate crono browser state from personal browsing |
-| **Headless + headed modes** | Debug visually, run headless in production         |
+| **Headless + headed modes** | Debug visually via live view, run headless in prod |
+| **Stealth mode**            | Avoid bot detection on Cronometer                  |
 | **SDK integration**         | Clean TypeScript API for page interaction          |
+| **Playwright execution**    | Remote Playwright code execution against browsers  |
 | **MCP server**              | Future: expose crono commands to AI assistants     |
 
 ### Alternative Considered
 
 Raw Playwright was considered but rejected because:
 
-- Manual session management required
-- No built-in profile isolation
+- Requires local browser installation
+- No remote execution or live view debugging
 - Kernel provides higher-level abstractions suited for this use case
 
 ## Goals
 
 ### MVP (v0.1)
 
-- [ ] `crono quick-add` — Log raw macros (protein/carbs/fat) to diary
-- [ ] Session persistence — Authenticate once, reuse across runs
-- [ ] Meal assignment — Optionally assign entries to Breakfast/Lunch/Dinner/Snacks
+- [x] `crono quick-add` — Log raw macros (protein/carbs/fat) to diary
+- [x] `crono login` — Store Kernel API key and Cronometer credentials
+- [x] Meal assignment — Optionally assign entries to Breakfast/Lunch/Dinner/Snacks
 
 ### v0.2
 
@@ -117,26 +117,37 @@ Raw Playwright was considered but rejected because:
 
 ## User Experience
 
-### First Run
+### Setup
 
 ```bash
-$ crono quick-add -p 30
-
-No Cronometer session found. Opening browser for login...
-[Browser opens to cronometer.com/login]
-
-Please log in to Cronometer in the browser window.
-Press Enter when done...
-
-✓ Session saved. Future commands will use this session.
-✓ Added: 30g protein → Uncategorized
+$ crono login
+┌  crono login
+│
+◇  Kernel API key
+│  sk-abc...
+│
+◒  Validating API key...
+◇  API key valid.
+│
+◇  Cronometer email
+│  you@example.com
+│
+◇  Cronometer password
+│  ****
+│
+└  Credentials saved.
 ```
 
-### Subsequent Runs
+### Usage
 
 ```bash
 $ crono quick-add -p 30 -c 100 -f 20 -m Dinner
-✓ Added: 30g protein, 100g carbs, 20g fat → Dinner
+┌  crono quick-add
+│
+◒  Logging into Cronometer...
+◇  Done.
+│
+└  Added: 30g protein, 100g carbs, 20g fat → Dinner
 ```
 
 ## Configuration
@@ -145,15 +156,16 @@ Stored in `~/.config/crono/`:
 
 ```
 ~/.config/crono/
-├── config.json       # User preferences
-└── sessions/         # Kernel browser sessions
+├── config.json         # User preferences
+└── credentials.enc     # Encrypted credentials (fallback if no OS keychain)
 ```
+
+Credentials are stored in the OS keychain via `@napi-rs/keyring`. On headless/CI environments without a keychain, an AES-256-GCM encrypted file is used as fallback.
 
 ### config.json
 
 ```json
 {
-  "kernelProfile": "crono",
   "defaultMeal": "Uncategorized"
 }
 ```

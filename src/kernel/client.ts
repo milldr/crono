@@ -5,7 +5,7 @@
  * and execute Playwright automation for diary entries.
  *
  * Each operation creates a fresh browser, logs in, performs the
- * action, and tears down. No profiles or persistent sessions needed.
+ * action, and tears down.
  */
 
 import * as p from "@clack/prompts";
@@ -101,7 +101,11 @@ async function addQuickEntry(
       throw new Error(`Quick add failed: ${data.error ?? "Unknown error"}`);
     }
   } finally {
-    await kernel.browsers.deleteByID(browser.session_id);
+    try {
+      await kernel.browsers.deleteByID(browser.session_id);
+    } catch {
+      // Browser may already be cleaned up by Kernel
+    }
   }
 }
 

@@ -57,12 +57,17 @@ crono quick-add --protein 25 --carbs 40 --fat 10 --meal Lunch
 
 ### Cronometer UI Flow
 
-1. Navigate to diary page
-2. Click "+ Add Food" button
-3. Click "Quick Add" tab
-4. Fill in macro fields
-5. Select meal from dropdown (if specified)
-6. Click "Add" button
+Each macro (protein, carbs, fat) is added as a separate "Quick Add" food item. For each macro:
+
+1. Navigate to `cronometer.com/#diary`
+2. Right-click the meal category (e.g. "Dinner")
+3. Click "Add Food..." in the context menu
+4. Search for the macro's food item (e.g. "Quick Add, Protein")
+5. Click SEARCH, select the matching result
+6. Enter serving size in grams via the "Serving Size" input
+7. Click "ADD TO DIARY"
+
+Cronometer is a GWT app, so automation uses keyboard.type() instead of fill() for search, and native input setter + event dispatch for the serving size field to trigger GWT's change detection.
 
 ### Error Handling
 

@@ -13,7 +13,7 @@
 export function buildLoginCheckCode(): string {
   return `
     await page.goto('https://cronometer.com/#diary', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     const url = page.url();
     const isLoggedIn = url.includes('#diary') && !url.includes('/login') && !url.includes('/signin');
     return { success: true, loggedIn: isLoggedIn, url };
@@ -43,7 +43,7 @@ export function buildAutoLoginCode(username: string, password: string): string {
   return `
     // Navigate to cronometer.com and click through to the login page
     await page.goto('https://cronometer.com', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
 
     // Click the "Log In" link in the top navigation
     const loginLinkSelectors = ['a[href="/login/"]', 'a[href="/login"]', 'a:has-text("Log In")', 'a:has-text("Login")'];
@@ -64,7 +64,7 @@ export function buildAutoLoginCode(username: string, password: string): string {
     }
 
     // Wait for login page to load
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('input[type="email"], input[name="username"], input[name="email"], #email, #username', { timeout: 10000 }).catch(() => {});
 
     // Fill email — try multiple selectors
     const emailSelectors = ['input[type="email"]', 'input[name="username"]', 'input[name="email"]', '#email', '#username'];
@@ -118,7 +118,8 @@ export function buildAutoLoginCode(username: string, password: string): string {
     }
 
     // Wait for navigation after login
-    await page.waitForTimeout(5000);
+    await page.waitForURL(u => !u.href.includes('/login') && !u.href.includes('/signin'), { timeout: 15000 }).catch(() => {});
+    await page.waitForTimeout(500);
 
     const url = page.url();
     const loggedIn = !url.includes('/login') && !url.includes('/signin');

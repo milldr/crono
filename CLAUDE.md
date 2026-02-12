@@ -6,8 +6,8 @@
 
 ## Read These First
 
-1. **`docs/PRDs/overview.md`** — Project goals, architecture, why Kernel.sh
-2. **`docs/PRDs/quick-add.md`** — Detailed spec for the first command
+1. **`docs/prds/overview.md`** — Project goals, architecture, why Kernel.sh
+2. **`docs/prds/quick-add.md`** — Detailed spec for the first command
 
 ## Architecture
 
@@ -15,19 +15,23 @@
 src/
 ├── index.ts              # CLI entry (Commander.js)
 ├── commands/
+│   ├── login.ts          # Credential setup command
 │   └── quick-add.ts      # Macro entry command
 ├── kernel/
-│   └── client.ts         # Kernel.sh browser integration (TODO)
-└── config.ts             # ~/.config/crono/ management
+│   ├── client.ts         # Kernel.sh SDK orchestration
+│   ├── login.ts          # Playwright codegen for login
+│   └── quick-add.ts      # Playwright codegen for quick-add
+├── config.ts             # ~/.config/crono/ management
+└── credentials.ts        # Keychain + encrypted file credential storage
 ```
 
 ## How Kernel.sh Works
 
 Kernel.sh is a browser automation platform. Key concepts:
 
-1. **Sessions** — Persistent browser state (cookies, localStorage)
-2. **Profiles** — Isolated browser contexts (we use a "crono" profile)
-3. **SDK** — TypeScript API for page interaction
+1. **Browsers** — Ephemeral browser sessions for automation
+2. **Playwright** — Remote code execution against browser pages
+3. **SDK** — TypeScript API for session and page interaction
 
 Our flow:
 
@@ -35,8 +39,7 @@ Our flow:
 CLI Command → Kernel Client → Kernel.sh SDK → Browser → Cronometer
 ```
 
-On first run: browser opens, user logs into Cronometer, session saved.
-On subsequent runs: session reused, no login needed.
+Each command creates a fresh browser, logs in, performs the action, and tears down.
 
 ## Current State
 
@@ -44,17 +47,20 @@ On subsequent runs: session reused, no login needed.
 
 - [x] Project scaffolding
 - [x] CLI structure with Commander.js
-- [x] `quick-add` command (validation, argument parsing)
+- [x] `quick-add` command (validation, argument parsing, full automation)
+- [x] `login` command (credential setup with keychain storage)
+- [x] Kernel.sh SDK integration in `src/kernel/client.ts`
+- [x] Cronometer login flow (auto with stored creds, manual via live view)
+- [x] UI automation with Playwright codegen (smart waits, GWT-compatible)
+- [x] Credential storage (OS keychain primary, AES-256-GCM encrypted file fallback)
 - [x] Config management (`~/.config/crono/`)
 - [x] CI pipeline (GitHub Actions, Ubuntu, Node 18/20/22)
+- [x] @clack/prompts CLI UX (spinners, styled output, cancel handling)
 
 **TODO:**
 
-- [ ] Kernel.sh SDK integration in `src/kernel/client.ts`
-- [ ] Cronometer login flow
-- [ ] Session persistence
-- [ ] Actual UI automation (fill forms, click buttons)
-- [ ] DOM selectors for Cronometer UI
+- [ ] Session persistence via Kernel profiles (requires paid plan)
+- [ ] Additional commands (`search`, `add`, `summary`, `weight`, `export`)
 
 ## Key Implementation Details
 
@@ -73,25 +79,26 @@ Flags:
 
 Validation: At least one macro required.
 
-### Cronometer UI Flow (for automation)
+### Cronometer UI Flow (automated)
 
-To add a quick entry in Cronometer's web UI:
+Each macro (protein, carbs, fat) is added as a separate "Quick Add" food item:
 
-1. Navigate to `cronometer.com/diary`
-2. Click "+ Add Food" button
-3. Click "Quick Add" tab
-4. Fill protein/carbs/fat fields
-5. Select meal from dropdown
-6. Click "Add" button
+1. Navigate to `cronometer.com/#diary`
+2. Right-click the meal category (e.g. "Dinner")
+3. Click "Add Food..." in context menu
+4. Search for the macro (e.g. "Quick Add, Protein")
+5. Click SEARCH, select the result
+6. Enter serving size in grams
+7. Click "ADD TO DIARY"
+8. Repeat for each macro
 
-Selectors need to be discovered by inspecting the actual Cronometer DOM.
+Uses event-driven Playwright waits (networkidle, waitForSelector) instead of fixed timeouts where possible. GWT-compatible input handling via native setter + event dispatch.
 
 ### Config Location
 
 ```
 ~/.config/crono/
-├── config.json     # User settings
-└── sessions/       # Kernel browser state
+└── config.json     # User settings
 ```
 
 ## Development Commands

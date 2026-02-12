@@ -9,6 +9,7 @@ Set Height 400
 Set Padding 20
 Set Theme "Catppuccin Mocha"
 Set TypingSpeed 60ms
+Set PlaybackSpeed 2
 
 Sleep 500ms
 
