@@ -12,6 +12,7 @@ These complement `quick-add` (anonymous macros) by letting users work with real,
 ## User Stories
 
 - As a user, I want to create a custom food from the CLI so I don't have to open the Cronometer web app
+- As a user, I want to create a custom food and immediately log it in one command
 - As a user, I want to log a saved food by name so I can script my daily meal logging
 - As a user, I want to log a food to a specific meal category (Breakfast, Lunch, Dinner, Snacks)
 - As a user, I want to specify the number of servings when logging a food
@@ -28,13 +29,16 @@ Creates a new custom food in Cronometer's "Custom Foods" section.
 
 #### Options
 
-| Flag | Long Form   | Type   | Required    | Default | Description            |
-| ---- | ----------- | ------ | ----------- | ------- | ---------------------- |
-| `-p` | `--protein` | number | conditional | -       | Grams of protein       |
-| `-c` | `--carbs`   | number | conditional | -       | Grams of carbohydrates |
-| `-f` | `--fat`     | number | conditional | -       | Grams of fat           |
+| Flag | Long Form   | Type   | Required    | Default | Description                                 |
+| ---- | ----------- | ------ | ----------- | ------- | ------------------------------------------- |
+| `-p` | `--protein` | number | conditional | -       | Grams of protein                            |
+| `-c` | `--carbs`   | number | conditional | -       | Grams of carbohydrates                      |
+| `-f` | `--fat`     | number | conditional | -       | Grams of fat                                |
+|      | `--log`     | string | no          | -       | Also log to diary (optionally specify meal) |
 
 **Validation:** At least one macro is required. Name is required (positional).
+
+`--log` accepts an optional meal argument. If `--log` is passed with no argument, the food is logged to Uncategorized. If a meal is specified (e.g. `--log Dinner`), it's logged to that category. Valid meals: Breakfast, Lunch, Dinner, Snacks (case-insensitive).
 
 #### Examples
 
@@ -44,6 +48,12 @@ crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50
 
 # Just protein and carbs
 crono add custom-food "Post-Workout Shake" -p 40 -c 60
+
+# Create and immediately log to Uncategorized
+crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50 --log
+
+# Create and immediately log to Dinner
+crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50 --log Dinner
 ```
 
 #### Success Output
@@ -54,6 +64,16 @@ crono add custom-food "Post-Workout Shake" -p 40 -c 60
 ◇  Done.
 │
 └  Created custom food: Wendy's Chicken Sandwich (P: 50g | C: 100g | F: 50g)
+```
+
+With `--log`:
+
+```
+┌  🍎 crono add
+│
+◇  Done.
+│
+└  Created and logged: Wendy's Chicken Sandwich (P: 50g | C: 100g | F: 50g) → Dinner
 ```
 
 ### `crono log`
@@ -150,6 +170,7 @@ The Custom Foods page (visible in the sidebar under Foods → Custom Foods) has 
 - The create food form is a nutrition label editor — it has fields for many nutrients, but we only fill in the macros the user provides
 - Serving size defaults to 1 serving — we use that default
 - GWT-compatible input handling is required (same as quick-add: native setter + event dispatch)
+- When `--log` is passed, the same browser session continues to the Food Logging flow below (no need to create a second browser)
 
 ### Food Logging (Diary Add)
 
@@ -187,6 +208,7 @@ addCmd
   .option("-p, --protein <grams>", "Grams of protein", parseFloat)
   .option("-c, --carbs <grams>", "Grams of carbohydrates", parseFloat)
   .option("-f, --fat <grams>", "Grams of fat", parseFloat)
+  .option("--log [meal]", "Also log to diary (optionally specify meal)")
   .action(async (name, options) => { ... });
 
 program
@@ -203,7 +225,7 @@ program
 | ------------------------------- | -------------------------------------------------------- |
 | No name provided                | Commander handles this (required positional arg)         |
 | No macros provided (add)        | "At least one macro (-p, -c, or -f) is required"         |
-| Invalid meal (log)              | "Invalid meal. Use: Breakfast, Lunch, Dinner, or Snacks" |
+| Invalid meal (log or --log)     | "Invalid meal. Use: Breakfast, Lunch, Dinner, or Snacks" |
 | Food not found in search (log)  | "No food found matching \"<name>\""                      |
 | Invalid servings (log)          | "Servings must be a positive number"                     |
 | Not logged in                   | "Please log in first. Run: crono login"                  |
