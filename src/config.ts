@@ -5,6 +5,8 @@ import { join } from "path";
 export interface CronoConfig {
   kernelProfile?: string;
   defaultMeal?: string;
+  gwtPermutation?: string;
+  gwtHeader?: string;
 }
 
 const CONFIG_DIR = join(homedir(), ".config", "crono");
