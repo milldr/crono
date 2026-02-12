@@ -38,6 +38,8 @@ Creates a new custom food in Cronometer's "Custom Foods" section.
 
 **Validation:** At least one macro is required. Name is required (positional).
 
+**Scope:** Only protein, carbs, and fat are supported initially. Cronometer's custom food form supports many additional nutrients (fiber, sodium, cholesterol, vitamins, etc.) — these can be added as flags in the future.
+
 `--log` accepts an optional meal argument. If `--log` is passed with no argument, the food is logged to Uncategorized. If a meal is specified (e.g. `--log Dinner`), it's logged to that category. Valid meals: Breakfast, Lunch, Dinner, Snacks (case-insensitive).
 
 #### Examples
@@ -237,5 +239,5 @@ program
 - `crono add custom-meal` — Create a custom meal
 - `crono log --fuzzy` — Fuzzy search with interactive selection when multiple results match
 - `crono log --date` — Log to a specific date
-- Micronutrient support for `add custom-food` (fiber, sodium, etc.)
+- Additional nutrient flags for `add custom-food` (fiber, sodium, cholesterol, sugars, saturated fat, etc.)
 - `crono foods list` — List all custom foods from the CLI
