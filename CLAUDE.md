@@ -15,12 +15,18 @@
 src/
 ├── index.ts              # CLI entry (Commander.js)
 ├── commands/
+│   ├── diary.ts          # Daily nutrition totals command
 │   ├── login.ts          # Credential setup command
-│   └── quick-add.ts      # Macro entry command
+│   ├── quick-add.ts      # Macro entry command
+│   └── weight.ts         # Weight reading command
 ├── kernel/
 │   ├── client.ts         # Kernel.sh SDK orchestration
+│   ├── diary.ts          # Playwright codegen for diary scraping
 │   ├── login.ts          # Playwright codegen for login
-│   └── quick-add.ts      # Playwright codegen for quick-add
+│   ├── quick-add.ts      # Playwright codegen for quick-add
+│   └── weight.ts         # Playwright codegen for weight scraping
+├── utils/
+│   └── date.ts           # Date validation and range parsing
 ├── config.ts             # ~/.config/crono/ management
 └── credentials.ts        # Keychain + encrypted file credential storage
 ```
@@ -56,11 +62,17 @@ Each command creates a fresh browser, logs in, performs the action, and tears do
 - [x] Config management (`~/.config/crono/`)
 - [x] CI pipeline (GitHub Actions, Ubuntu, Node 18/20/22)
 - [x] @clack/prompts CLI UX (spinners, styled output, cancel handling)
+- [x] `weight` command (date/range support, JSON output)
+- [x] `diary` command (daily nutrition totals, date/range support, JSON output)
+- [x] Date utilities (`src/utils/date.ts`) shared across read commands
+- [x] npm publishing (`@milldr/crono`) with trusted publishing via OIDC
+- [x] Release Drafter + automated publish workflow
+- [x] Branch protection (PRs required against main)
 
 **TODO:**
 
 - [ ] Session persistence via Kernel profiles (requires paid plan)
-- [ ] Additional commands (`search`, `add`, `summary`, `weight`, `export`)
+- [ ] Additional commands (`search`, `add`, `summary`, `export`)
 
 ## Key Implementation Details
 
@@ -117,6 +129,24 @@ npm run format       # Prettier
 1. Create `src/commands/<name>.ts`
 2. Export the handler function
 3. Register in `src/index.ts` with Commander
+
+## Publishing & Releases
+
+Package is published to npm as `@milldr/crono`.
+
+**Workflow:**
+
+1. PRs merged to `main` → Release Drafter auto-updates a draft GitHub Release
+2. Review the draft at GitHub Releases, edit if needed
+3. Click "Publish release" → `.github/workflows/release.yml` runs CI and publishes to npm
+
+**Details:**
+
+- npm authentication uses **trusted publishing** (OIDC) — no `NPM_TOKEN` secret needed
+- The publish workflow runs format check, lint, build, and tests before publishing
+- `--provenance` flag is included for npm supply chain security
+- `files` field in `package.json` limits the published tarball to `dist/` only
+- Branch protection requires PRs against `main` (admins can bypass)
 
 ## Testing
 
