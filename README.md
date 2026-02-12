@@ -1,4 +1,4 @@
-# crono
+# 🍎 crono
 
 CLI for Cronometer automation via [Kernel.sh](https://kernel.sh).
 

@@ -35,7 +35,7 @@ export async function diary(options: DiaryOptions): Promise<void> {
   }
 
   if (!options.json) {
-    p.intro("crono diary");
+    p.intro("🍎 crono diary");
   }
 
   const s = options.json ? null : p.spinner();

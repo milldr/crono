@@ -48,7 +48,7 @@ export async function login(): Promise<void> {
   const existingEmail = getCredential("cronometer-username");
   const existingPassword = getCredential("cronometer-password");
 
-  p.intro("crono login");
+  p.intro("🍎 crono login");
 
   if (existingKey || existingEmail || existingPassword) {
     p.log.info(

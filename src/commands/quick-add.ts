@@ -38,7 +38,7 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     ? options.meal.charAt(0).toUpperCase() + options.meal.slice(1).toLowerCase()
     : "Uncategorized";
 
-  p.intro("crono quick-add");
+  p.intro("🍎 crono quick-add");
 
   const s = p.spinner();
   s.start("Connecting...");

@@ -35,7 +35,7 @@ export async function weight(options: WeightOptions): Promise<void> {
   }
 
   if (!options.json) {
-    p.intro("crono weight");
+    p.intro("🍎 crono weight");
   }
 
   const s = options.json ? null : p.spinner();
