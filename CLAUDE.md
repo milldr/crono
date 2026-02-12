@@ -6,8 +6,8 @@
 
 ## Read These First
 
-1. **`docs/prds/overview.md`** — Project goals, architecture, why Kernel.sh
-2. **`docs/prds/quick-add.md`** — Detailed spec for the first command
+1. **`docs/prds/00-overview.md`** — Project goals, tech stack, how it works
+2. **`docs/prds/02-command-quick-add.md`** — Detailed spec for the quick-add command
 
 ## Architecture
 
