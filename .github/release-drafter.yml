@@ -29,9 +29,11 @@ version-resolver:
     labels:
       - "minor"
       - "feature"
+      - "enhancement"
   patch:
     labels:
       - "patch"
       - "fix"
       - "bugfix"
-  default: patch
+      - "bug"
+  default: minor
