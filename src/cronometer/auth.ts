@@ -9,6 +9,9 @@
 
 const BASE_URL = "https://cronometer.com";
 
+// GWT permutation and header hashes are public client-side artifacts visible to
+// anyone inspecting Cronometer's network requests — they are not secrets.
+// These may need updating if Cronometer deploys a new GWT build.
 const DEFAULT_GWT_PERMUTATION = "7B121DC5483BF272B1BC1916DA9FA963";
 const DEFAULT_GWT_HEADER = "2D6A926E3729946302DC68073CB0D550";
 

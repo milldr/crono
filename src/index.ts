@@ -3,6 +3,8 @@
 import { Command } from "commander";
 import { login } from "./commands/login.js";
 import { quickAdd } from "./commands/quick-add.js";
+import { addCustomFood } from "./commands/add.js";
+import { log } from "./commands/log.js";
 import { diary } from "./commands/diary.js";
 import { weight } from "./commands/weight.js";
 import { exportCmd } from "./commands/export.js";
@@ -33,6 +35,36 @@ program
   )
   .action(async (options) => {
     await quickAdd(options);
+  });
+
+const addCmd = program.command("add").description("Add items to Cronometer");
+
+addCmd
+  .command("custom-food <name>")
+  .description("Create a custom food with macros")
+  .option("-p, --protein <grams>", "Grams of protein", parseFloat)
+  .option("-c, --carbs <grams>", "Grams of carbohydrates", parseFloat)
+  .option("-f, --fat <grams>", "Grams of fat", parseFloat)
+  .option(
+    "-t, --total <calories>",
+    "Total calories (auto-calculated from macros if omitted)",
+    parseFloat
+  )
+  .option("--log [meal]", "Also log to diary (optionally specify meal)")
+  .action(async (name, options) => {
+    await addCustomFood(name, options);
+  });
+
+program
+  .command("log <name>")
+  .description("Log a food to your diary by name")
+  .option(
+    "-m, --meal <name>",
+    "Meal category (Breakfast, Lunch, Dinner, Snacks)"
+  )
+  .option("-s, --servings <count>", "Number of servings", parseFloat)
+  .action(async (name, options) => {
+    await log(name, options);
   });
 
 program

@@ -123,6 +123,29 @@ export function buildAutoLoginCode(username: string, password: string): string {
 
     const url = page.url();
     const loggedIn = !url.includes('/login') && !url.includes('/signin');
-    return { success: true, loggedIn, url };
+
+    // If still on login page, check for error messages (rate limit, wrong creds, etc.)
+    let loginError = null;
+    if (!loggedIn) {
+      loginError = await page.evaluate(() => {
+        const selectors = [
+          '.error-message', '.alert', '.notification',
+          '[class*="error"]', '[class*="alert"]',
+          '.gwt-HTML',
+        ];
+        for (const sel of selectors) {
+          const els = document.querySelectorAll(sel);
+          for (const el of els) {
+            const text = el.textContent?.trim();
+            if (text && text.length > 5 && text.length < 300 && el.offsetParent !== null) {
+              return text;
+            }
+          }
+        }
+        return null;
+      });
+    }
+
+    return { success: true, loggedIn, url, loginError };
   `;
 }

@@ -17,6 +17,8 @@ import {
   buildNavigateToLoginCode,
 } from "./login.js";
 import { buildQuickAddCode } from "./quick-add.js";
+import { buildAddCustomFoodCode } from "./add-custom-food.js";
+import { buildLogFoodCode } from "./log-food.js";
 import { buildDiaryCode } from "./diary.js";
 import { buildWeightCode } from "./weight.js";
 
@@ -41,6 +43,21 @@ export interface DiaryData {
   fat: number;
 }
 
+export interface CustomFoodEntry {
+  name: string;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  calories?: number;
+  log?: string | boolean;
+}
+
+export interface LogFoodEntry {
+  name: string;
+  meal?: string;
+  servings?: number;
+}
+
 export interface KernelClient {
   addQuickEntry(
     entry: MacroEntry,
@@ -54,6 +71,11 @@ export interface KernelClient {
     dates: string[],
     onStatus?: (msg: string) => void
   ): Promise<DiaryData[]>;
+  addCustomFood(
+    entry: CustomFoodEntry,
+    onStatus?: (msg: string) => void
+  ): Promise<void>;
+  logFood(entry: LogFoodEntry, onStatus?: (msg: string) => void): Promise<void>;
 }
 
 /**
@@ -83,6 +105,10 @@ export async function getKernelClient(): Promise<KernelClient> {
       getWeight(kernel, dates, onStatus),
     getDiary: (dates: string[], onStatus?: (msg: string) => void) =>
       getDiary(kernel, dates, onStatus),
+    addCustomFood: (entry: CustomFoodEntry, onStatus?: (msg: string) => void) =>
+      addCustomFood(kernel, entry, onStatus),
+    logFood: (entry: LogFoodEntry, onStatus?: (msg: string) => void) =>
+      logFood(kernel, entry, onStatus),
   };
 }
 
@@ -248,6 +274,106 @@ async function getDiary(
 }
 
 /**
+ * Execute the custom food creation automation on Cronometer.
+ * Creates a browser, logs in, creates the food, optionally logs it, then tears down.
+ */
+async function addCustomFood(
+  kernel: Kernel,
+  entry: CustomFoodEntry,
+  onStatus?: (msg: string) => void
+): Promise<void> {
+  const username = getCredential("cronometer-username");
+  const password = getCredential("cronometer-password");
+  const hasAutoCreds = !!(username && password);
+
+  const browser = await kernel.browsers.create({
+    headless: hasAutoCreds,
+    stealth: true,
+    timeout_seconds: hasAutoCreds ? 120 : 300,
+  });
+
+  try {
+    if (hasAutoCreds) {
+      await autoLogin(kernel, browser.session_id, username, password, onStatus);
+    } else {
+      await manualLogin(kernel, browser);
+    }
+
+    onStatus?.("Creating custom food...");
+    const result = await kernel.browsers.playwright.execute(
+      browser.session_id,
+      { code: buildAddCustomFoodCode(entry), timeout_sec: 120 }
+    );
+
+    if (!result.success) {
+      throw new Error(`Automation failed: ${result.error ?? "Unknown error"}`);
+    }
+
+    const data = result.result as { success: boolean; error?: string };
+    if (!data.success) {
+      throw new Error(
+        `Custom food creation failed: ${data.error ?? "Unknown error"}`
+      );
+    }
+  } finally {
+    try {
+      await kernel.browsers.deleteByID(browser.session_id);
+    } catch {
+      // Browser may already be cleaned up by Kernel
+    }
+  }
+}
+
+/**
+ * Execute the food logging automation on Cronometer.
+ * Creates a browser, logs in, searches for the food, logs it, then tears down.
+ */
+async function logFood(
+  kernel: Kernel,
+  entry: LogFoodEntry,
+  onStatus?: (msg: string) => void
+): Promise<void> {
+  const username = getCredential("cronometer-username");
+  const password = getCredential("cronometer-password");
+  const hasAutoCreds = !!(username && password);
+
+  const browser = await kernel.browsers.create({
+    headless: hasAutoCreds,
+    stealth: true,
+    timeout_seconds: hasAutoCreds ? 120 : 300,
+  });
+
+  try {
+    if (hasAutoCreds) {
+      await autoLogin(kernel, browser.session_id, username, password, onStatus);
+    } else {
+      await manualLogin(kernel, browser);
+    }
+
+    onStatus?.("Logging food to diary...");
+    const result = await kernel.browsers.playwright.execute(
+      browser.session_id,
+      { code: buildLogFoodCode(entry), timeout_sec: 60 }
+    );
+
+    if (!result.success) {
+      throw new Error(`Automation failed: ${result.error ?? "Unknown error"}`);
+    }
+
+    const data = result.result as { success: boolean; error?: string };
+    if (!data.success) {
+      throw new Error(`Food logging failed: ${data.error ?? "Unknown error"}`);
+    }
+  } finally {
+    try {
+      await kernel.browsers.deleteByID(browser.session_id);
+    } catch {
+      // Browser may already be cleaned up by Kernel
+    }
+  }
+}
+
+/**
  * Auto-login using stored Cronometer credentials.
  */
 async function autoLogin(
@@ -269,11 +395,26 @@ async function autoLogin(
     loggedIn: boolean;
     url: string;
     error?: string;
+    loginError?: string | null;
   };
 
   if (!result.success || !data.loggedIn) {
+    const pageError = data.loginError?.toLowerCase() ?? "";
+    const isRateLimited =
+      pageError.includes("too many") ||
+      pageError.includes("rate limit") ||
+      pageError.includes("try again later") ||
+      pageError.includes("temporarily");
+
+    if (isRateLimited) {
+      throw new Error(
+        `Cronometer is rate-limiting login attempts. ${data.loginError}\n` +
+          "Please wait a few minutes and try again."
+      );
+    }
+
     throw new Error(
-      `Auto-login failed: ${data.error ?? "Login verification failed"}.\n` +
+      `Auto-login failed: ${data.error ?? data.loginError ?? "Login verification failed"}.\n` +
         "Your credentials may be incorrect. Run `crono login` to update them."
     );
   }
