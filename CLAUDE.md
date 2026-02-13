@@ -124,6 +124,8 @@ npm run lint         # ESLint
 npm run format       # Prettier
 ```
 
+**Important:** The globally installed `crono` command runs from `dist/`, not `src/`. After changing source files, always run `npm run build` before testing with `crono`. Use `npm run dev -- <cmd>` to skip the build step during development.
+
 ## Adding New Commands
 
 1. Create `src/commands/<name>.ts`
