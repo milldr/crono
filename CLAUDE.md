@@ -139,12 +139,27 @@ Package is published to npm as `@milldr/crono`.
 **Workflow:**
 
 1. PRs merged to `main` → Release Drafter auto-updates a draft GitHub Release
-2. Review the draft at GitHub Releases, edit if needed
-3. Click "Publish release" → `.github/workflows/release.yml` runs CI and publishes to npm
+2. Release Drafter resolves the next version from PR labels (`minor` default, `major`/`patch` via labels)
+3. Review the draft at GitHub Releases, edit if needed
+4. Click "Publish release" → `.github/workflows/release.yml` runs CI and publishes to npm
+5. The publish workflow extracts the version from the release tag and sets it in `package.json` before publishing — no manual version bump needed
 
-**Details:**
+**Version Bumping:**
 
-- npm authentication uses **trusted publishing** (OIDC) — no `NPM_TOKEN` secret needed
+- PR labels control the version bump: `major`, `minor`/`feature`/`enhancement`, `patch`/`fix`/`bugfix`/`bug`
+- Default bump is `minor` (when no version label is present)
+- `no release` label signals a PR doesn't warrant a release (just don't publish the draft)
+- The git tag is the source of truth for the version, not `package.json`
+
+**npm Authentication:**
+
+- Uses **OIDC trusted publishing** — no `NPM_TOKEN` secret needed
+- Requires npm >= 11.5 for OIDC auth (the publish workflow upgrades npm)
+- `setup-node` must NOT use `registry-url` (it injects `GITHUB_TOKEN` as `NODE_AUTH_TOKEN`, overriding OIDC)
+- `package.json` must have a `repository.url` matching the GitHub repo (required for provenance validation)
+
+**Other Details:**
+
 - The publish workflow runs format check, lint, build, and tests before publishing
 - `--provenance` flag is included for npm supply chain security
 - `files` field in `package.json` limits the published tarball to `dist/` only
