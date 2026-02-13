@@ -26,6 +26,10 @@
     "automation",
     "kernel"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/milldr/crono"
+  },
   "author": "Daniel Miller",
   "license": "MIT",
   "engines": {
