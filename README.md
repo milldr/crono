@@ -103,6 +103,69 @@ crono quick-add -p 30 -c 100 -f 20
 crono quick-add -p 30 -c 50 -f 15 --meal Dinner
 ```
 
+### `crono add custom-food`
+
+Create a custom food in Cronometer with specified macros.
+
+```bash
+crono add custom-food <name> [options]
+```
+
+**Options:**
+
+| Flag | Long            | Description                                 |
+| ---- | --------------- | ------------------------------------------- |
+| `-p` | `--protein <g>` | Grams of protein                            |
+| `-c` | `--carbs <g>`   | Grams of carbohydrates                      |
+| `-f` | `--fat <g>`     | Grams of fat                                |
+|      | `--log [meal]`  | Also log to diary (optionally specify meal) |
+
+At least one macro flag (`-p`, `-c`, or `-f`) is required.
+
+**Examples:**
+
+```bash
+# Create a custom food with all macros
+crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50
+
+# Just protein and carbs
+crono add custom-food "Post-Workout Shake" -p 40 -c 60
+
+# Create and immediately log to Uncategorized
+crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50 --log
+
+# Create and immediately log to Dinner
+crono add custom-food "Wendy's Chicken Sandwich" -p 50 -c 100 -f 50 --log Dinner
+```
+
+### `crono log`
+
+Log a saved food to your diary by name. Works with custom foods, custom recipes, and database items.
+
+```bash
+crono log <name> [options]
+```
+
+**Options:**
+
+| Flag | Long                 | Description                                      |
+| ---- | -------------------- | ------------------------------------------------ |
+| `-m` | `--meal <name>`      | Meal category (Breakfast, Lunch, Dinner, Snacks) |
+| `-s` | `--servings <count>` | Number of servings (default: 1)                  |
+
+**Examples:**
+
+```bash
+# Log a custom food
+crono log "Wendy's Chicken Sandwich"
+
+# Log to a specific meal
+crono log "Wendy's Chicken Sandwich" -m Dinner
+
+# Log multiple servings
+crono log "Post-Workout Shake" -s 2 -m Snacks
+```
+
 ### `crono weight`
 
 Check your weight from Cronometer. Defaults to today if no date or range is specified.
