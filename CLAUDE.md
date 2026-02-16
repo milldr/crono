@@ -64,7 +64,9 @@ Each command creates a fresh browser, logs in, performs the action, and tears do
 - [x] @clack/prompts CLI UX (spinners, styled output, cancel handling)
 - [x] `weight` command (date/range support, JSON output)
 - [x] `diary` command (daily nutrition totals, date/range support, JSON output)
-- [x] Date utilities (`src/utils/date.ts`) shared across read commands
+- [x] Date utilities (`src/utils/date.ts`) shared across commands (includes `resolveDate` for quick-add)
+- [x] `quick-add --date` flag (retroactive logging via prev-day arrow navigation)
+- [x] `quick-add --alcohol` flag (alcohol grams as separate macro)
 - [x] npm publishing (`@milldr/crono`) with trusted publishing via OIDC
 - [x] Release Drafter + automated publish workflow
 - [x] Branch protection (PRs required against main)
@@ -79,7 +81,7 @@ Each command creates a fresh browser, logs in, performs the action, and tears do
 ### Quick Add Command
 
 ```bash
-crono quick-add -p 30 -c 100 -f 20 -m Dinner
+crono quick-add -p 30 -c 100 -f 20 -a 14 -m Dinner -d yesterday
 ```
 
 Flags:
@@ -87,24 +89,29 @@ Flags:
 - `-p, --protein <g>` — Grams of protein
 - `-c, --carbs <g>` — Grams of carbs
 - `-f, --fat <g>` — Grams of fat
+- `-a, --alcohol <g>` — Grams of alcohol
 - `-m, --meal <name>` — Breakfast, Lunch, Dinner, Snacks (default: Uncategorized)
+- `-d, --date <date>` — Target date (YYYY-MM-DD, yesterday, -Nd; default: today)
 
-Validation: At least one macro required.
+Validation: At least one macro required (-p, -c, -f, or -a).
 
 ### Cronometer UI Flow (automated)
 
-Each macro (protein, carbs, fat) is added as a separate "Quick Add" food item:
+Each macro (protein, carbs, fat, alcohol) is added as a separate "Quick Add" food item:
 
 1. Navigate to `cronometer.com/#diary`
-2. Right-click the meal category (e.g. "Dinner")
-3. Click "Add Food..." in context menu
-4. Search for the macro (e.g. "Quick Add, Protein")
-5. Click SEARCH, select the result
-6. Enter serving size in grams
-7. Click "ADD TO DIARY"
-8. Repeat for each macro
+2. If `--date` is set, click prev-day arrow to reach the target date (2s wait per click for GWT re-render)
+3. Right-click the meal category (e.g. "Dinner")
+4. Click "Add Food..." in context menu
+5. Search for the macro (e.g. "Quick Add, Protein")
+6. Click SEARCH, select the result
+7. Enter serving size in grams
+8. Click "ADD TO DIARY"
+9. Repeat for each macro
 
-Uses event-driven Playwright waits (networkidle, waitForSelector) instead of fixed timeouts where possible. GWT-compatible input handling via native setter + event dispatch.
+**Date navigation note:** Cronometer's GWT hash routing does not support `?date=` query params. Date changes use prev-day arrow clicks (same approach as `diary` and `weight` commands), capped at 90 days back.
+
+Uses event-driven Playwright waits (networkidle, waitForSelector) with a 2s stabilization wait after initial navigation for GWT rendering. GWT-compatible input handling via native setter + event dispatch.
 
 ### Config Location
 

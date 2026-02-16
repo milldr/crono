@@ -17,14 +17,16 @@ crono quick-add [options]
 
 ### Options
 
-| Flag | Long Form   | Type   | Required    | Default       | Description            |
-| ---- | ----------- | ------ | ----------- | ------------- | ---------------------- |
-| `-p` | `--protein` | number | conditional | -             | Grams of protein       |
-| `-c` | `--carbs`   | number | conditional | -             | Grams of carbohydrates |
-| `-f` | `--fat`     | number | conditional | -             | Grams of fat           |
-| `-m` | `--meal`    | string | no          | uncategorized | Meal category          |
+| Flag | Long Form   | Type   | Required    | Default       | Description                       |
+| ---- | ----------- | ------ | ----------- | ------------- | --------------------------------- |
+| `-p` | `--protein` | number | conditional | -             | Grams of protein                  |
+| `-c` | `--carbs`   | number | conditional | -             | Grams of carbohydrates            |
+| `-f` | `--fat`     | number | conditional | -             | Grams of fat                      |
+| `-a` | `--alcohol` | number | conditional | -             | Grams of alcohol                  |
+| `-m` | `--meal`    | string | no          | uncategorized | Meal category                     |
+| `-d` | `--date`    | string | no          | today         | Date (YYYY-MM-DD, yesterday, -1d) |
 
-**Validation:** At least one of `-p`, `-c`, or `-f` must be provided.
+**Validation:** At least one of `-p`, `-c`, `-f`, or `-a` must be provided.
 
 ### Meal Categories
 
@@ -51,15 +53,24 @@ crono quick-add -p 30 -c 50 -f 15 -m Dinner
 
 # Long form
 crono quick-add --protein 25 --carbs 40 --fat 10 --meal Lunch
+
+# Log to yesterday
+crono quick-add -p 30 -d yesterday -m Dinner
+
+# Log alcohol
+crono quick-add -a 14 -m Dinner
+
+# Combine date and alcohol
+crono quick-add -p 30 -a 14 -d -3d -m Dinner
 ```
 
 ## Implementation Notes
 
 ### Cronometer UI Flow
 
-Each macro (protein, carbs, fat) is added as a separate "Quick Add" food item. For each macro:
+Each macro (protein, carbs, fat, alcohol) is added as a separate "Quick Add" food item. For each macro:
 
-1. Navigate to `cronometer.com/#diary`
+1. Navigate to `cronometer.com/#diary` (with optional prev-day arrow navigation for `--date`)
 2. Right-click the meal category (e.g. "Dinner")
 3. Click "Add Food..." in the context menu
 4. Search for the macro's food item (e.g. "Quick Add, Protein")
@@ -73,7 +84,7 @@ Cronometer is a GWT app, so automation uses keyboard.type() instead of fill() fo
 
 | Error              | User Message                                             |
 | ------------------ | -------------------------------------------------------- |
-| No macros provided | "At least one macro (-p, -c, or -f) is required"         |
+| No macros provided | "At least one macro (-p, -c, -f, or -a) is required"     |
 | Invalid meal       | "Invalid meal. Use: Breakfast, Lunch, Dinner, or Snacks" |
 | Not logged in      | "Please log in first. Run: crono login"                  |
 | Kernel unavailable | "Could not connect to Kernel. Ensure it's running."      |
@@ -87,5 +98,4 @@ Cronometer is a GWT app, so automation uses keyboard.type() instead of fill() fo
 ## Future Enhancements
 
 - `-cal` / `--calories` flag for manual calorie override
-- `--date` flag to add to a different day
 - `--note` flag for entry notes
