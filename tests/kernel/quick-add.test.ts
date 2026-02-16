@@ -84,6 +84,24 @@ describe("buildQuickAddCode", () => {
     const code = buildQuickAddCode({ protein: 30 });
     expect(code).toContain("return { success: true }");
   });
+
+  it("should navigate to target date using prev-day arrows when date is provided", () => {
+    const code = buildQuickAddCode({ protein: 30, date: "2026-02-10" });
+    expect(code).toContain('"2026-02-10"');
+    expect(code).toContain("diary-date-previous");
+    expect(code).toContain("daysBack");
+  });
+
+  it("should not include date navigation when no date provided", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("targetDate = null");
+  });
+
+  it("should search for Quick Add, Alcohol when alcohol provided", () => {
+    const code = buildQuickAddCode({ alcohol: 143 });
+    expect(code).toContain("Quick Add, Alcohol");
+    expect(code).toContain("143");
+  });
 });
 
 describe("MACRO_SEARCH_NAMES", () => {
@@ -97,5 +115,9 @@ describe("MACRO_SEARCH_NAMES", () => {
 
   it("should map fat to Quick Add, Fat", () => {
     expect(MACRO_SEARCH_NAMES.fat).toBe("Quick Add, Fat");
+  });
+
+  it("should map alcohol to Quick Add, Alcohol", () => {
+    expect(MACRO_SEARCH_NAMES.alcohol).toBe("Quick Add, Alcohol");
   });
 });

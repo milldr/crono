@@ -5,6 +5,7 @@ import {
   parseRange,
   todayStr,
   dateRange,
+  resolveDate,
 } from "../../src/utils/date.js";
 
 describe("parseDate", () => {
@@ -82,6 +83,38 @@ describe("parseRange", () => {
 
   it("should reject zero-day relative ranges", () => {
     expect(() => parseRange("0d")).toThrow("positive");
+  });
+});
+
+describe("resolveDate", () => {
+  it("should resolve 'yesterday' to yesterday's date", () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    expect(resolveDate("yesterday")).toBe(expected);
+  });
+
+  it("should resolve '-1d' to yesterday's date", () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const expected = formatDate(d);
+    expect(resolveDate("-1d")).toBe(expected);
+  });
+
+  it("should resolve '-7d' to 7 days ago", () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const expected = formatDate(d);
+    expect(resolveDate("-7d")).toBe(expected);
+  });
+
+  it("should pass through valid YYYY-MM-DD dates", () => {
+    expect(resolveDate("2026-02-10")).toBe("2026-02-10");
+  });
+
+  it("should throw on invalid input", () => {
+    expect(() => resolveDate("not-a-date")).toThrow("Invalid date format");
+    expect(() => resolveDate("2026-13-01")).toThrow("Invalid date");
   });
 });
 
