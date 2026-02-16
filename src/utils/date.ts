@@ -41,6 +41,29 @@ export function todayStr(): string {
 }
 
 /**
+ * Resolve a date input string to YYYY-MM-DD.
+ *
+ * Supports:
+ * - "yesterday"
+ * - Relative: "-1d", "-7d" (N days ago)
+ * - Absolute: "YYYY-MM-DD"
+ */
+export function resolveDate(input: string): string {
+  if (input === "yesterday") {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return formatDate(d);
+  }
+  const relMatch = input.match(/^-(\d+)d$/);
+  if (relMatch) {
+    const d = new Date();
+    d.setDate(d.getDate() - parseInt(relMatch[1], 10));
+    return formatDate(d);
+  }
+  return parseDate(input);
+}
+
+/**
  * Parse a range spec into start/end date strings.
  *
  * Supports:

@@ -26,7 +26,9 @@ export interface MacroEntry {
   protein?: number;
   carbs?: number;
   fat?: number;
+  alcohol?: number;
   meal?: string;
+  date?: string;
 }
 
 export interface WeightData {

@@ -29,10 +29,12 @@ program
   .option("-p, --protein <grams>", "Grams of protein", parseFloat)
   .option("-c, --carbs <grams>", "Grams of carbohydrates", parseFloat)
   .option("-f, --fat <grams>", "Grams of fat", parseFloat)
+  .option("-a, --alcohol <grams>", "Grams of alcohol", parseFloat)
   .option(
     "-m, --meal <name>",
     "Meal category (Breakfast, Lunch, Dinner, Snacks)"
   )
+  .option("-d, --date <date>", "Date (YYYY-MM-DD, yesterday, -1d)")
   .action(async (options) => {
     await quickAdd(options);
   });

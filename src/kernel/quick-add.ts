@@ -16,6 +16,7 @@ export const MACRO_SEARCH_NAMES: Record<string, string> = {
   protein: "Quick Add, Protein",
   carbs: "Quick Add, Carbohydrate",
   fat: "Quick Add, Fat",
+  alcohol: "Quick Add, Alcohol",
 };
 
 /**
@@ -26,7 +27,7 @@ export const MACRO_SEARCH_NAMES: Record<string, string> = {
  *   select result → enter serving size (grams) → "Add to Diary"
  */
 export function buildQuickAddCode(entry: MacroEntry): string {
-  const { protein, carbs, fat, meal } = entry;
+  const { protein, carbs, fat, alcohol, meal, date } = entry;
 
   const mealLabel = meal
     ? meal.charAt(0).toUpperCase() + meal.slice(1).toLowerCase()
@@ -52,21 +53,46 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       searchName: MACRO_SEARCH_NAMES.fat,
       grams: fat,
     });
+  if (alcohol !== undefined)
+    macros.push({
+      name: "alcohol",
+      searchName: MACRO_SEARCH_NAMES.alcohol,
+      grams: alcohol,
+    });
 
   const macrosJson = JSON.stringify(macros);
 
   return `
     const macros = ${macrosJson};
     const mealLabel = ${JSON.stringify(mealLabel)};
+    const targetDate = ${JSON.stringify(date ?? null)};
 
     // Navigate to diary — we're already logged in from the same session
     await page.goto('https://cronometer.com/#diary', { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
+    // Wait for the diary to fully render
+    await page.waitForTimeout(2000);
+
     // Verify we're logged in
     const url = page.url();
     if (url.includes('/login') || url.includes('/signin')) {
       return { success: false, error: 'Not logged in. Login may have failed.' };
+    }
+
+    // Navigate to the target date using prev-day arrows (same approach as diary/weight)
+    if (targetDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(targetDate + 'T00:00:00');
+      const daysBack = Math.round((today - target) / (1000 * 60 * 60 * 24));
+      for (let s = 0; s < daysBack && s < 90; s++) {
+        const prev = page.locator('i.diary-date-previous').filter({ visible: true });
+        if (await prev.count() > 0) {
+          await prev.first().click();
+          await page.waitForTimeout(2000);
+        }
+      }
     }
 
     // Helper: find and click an element from a list of selectors
