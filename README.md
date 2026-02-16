@@ -49,7 +49,7 @@ You'll be prompted for three things:
 ### 3. Log a meal
 
 ```bash
-crono quick-add -p 30 -c 100 -f 20 -m Dinner
+crono quick-add -p 30 -c 100 -f 20 -a 14 -m Dinner -d yesterday
 ```
 
 ```
@@ -58,7 +58,7 @@ crono quick-add -p 30 -c 100 -f 20 -m Dinner
 ◒  Logging into Cronometer...
 ◇  Done.
 │
-└  Added: 30g protein, 100g carbs, 20g fat → Dinner
+└  Added: 30g protein, 100g carbs, 20g fat, 14g alcohol → Dinner on 2026-02-15
 ```
 
 ## Commands
@@ -86,9 +86,11 @@ crono quick-add [options]
 | `-p` | `--protein <g>` | Grams of protein                                 |
 | `-c` | `--carbs <g>`   | Grams of carbohydrates                           |
 | `-f` | `--fat <g>`     | Grams of fat                                     |
+| `-a` | `--alcohol <g>` | Grams of alcohol                                 |
 | `-m` | `--meal <name>` | Meal category (Breakfast, Lunch, Dinner, Snacks) |
+| `-d` | `--date <date>` | Date (YYYY-MM-DD, yesterday, -1d)                |
 
-At least one macro flag (`-p`, `-c`, or `-f`) is required.
+At least one macro flag (`-p`, `-c`, `-f`, or `-a`) is required.
 
 **Examples:**
 
@@ -101,6 +103,15 @@ crono quick-add -p 30 -c 100 -f 20
 
 # Log to Dinner category
 crono quick-add -p 30 -c 50 -f 15 --meal Dinner
+
+# Log to yesterday
+crono quick-add -p 30 -d yesterday -m Dinner
+
+# Log alcohol
+crono quick-add -a 14 -m Dinner
+
+# Combine everything
+crono quick-add -p 30 -c 50 -f 10 -a 14 -d -3d -m Dinner
 ```
 
 ### `crono add custom-food`
