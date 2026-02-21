@@ -8,6 +8,12 @@ Cronometer has no public API, so crono automates the web UI through Kernel.sh br
 
 ![crono quick-add demo](demo.gif)
 
+## Motivation
+
+Cronometer is great for logging food — barcode scanning and manual search cover most meals at home. But when you're eating out or don't have a barcode, the workflow gets clunky: take a photo, ask an AI to estimate the macros, then manually punch those numbers into the app as a quick add.
+
+crono closes that loop. Give your AI agent a skill that knows how to call crono, and it goes from estimating macros to actually logging them — no manual step in between. On top of that, your agent can query your diary, pull export data, and answer questions about your nutrition without you ever opening the app.
+
 ## Quickstart
 
 ### 1. Install
