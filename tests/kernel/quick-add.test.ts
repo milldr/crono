@@ -85,6 +85,33 @@ describe("buildQuickAddCode", () => {
     expect(code).toContain("return { success: true }");
   });
 
+  it("should include click timeouts in helper functions", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("click({ timeout: 5000 })");
+    expect(code).toContain("click({ button: 'right', timeout: 5000 })");
+  });
+
+  it("should check dialog dismissal instead of silently catching", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("dialogDismissed");
+    expect(code).toContain("dialog did not close");
+    expect(code).not.toMatch(
+      /waitForSelector\('text="Add Food to Diary"',\s*\{\s*state:\s*'hidden'[^)]*\)\.catch\(\(\)\s*=>\s*\{\s*\}\)/
+    );
+  });
+
+  it("should check context menu visibility instead of silently catching", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("menuVisible");
+    expect(code).toContain("Context menu did not appear");
+  });
+
+  it("should check search results instead of silently catching", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("resultsAppeared");
+    expect(code).toContain("Search results did not appear");
+  });
+
   it("should navigate to target date using prev-day arrows when date is provided", () => {
     const code = buildQuickAddCode({ protein: 30, date: "2026-02-10" });
     expect(code).toContain('"2026-02-10"');

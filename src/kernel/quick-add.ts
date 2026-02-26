@@ -101,7 +101,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
         try {
           const el = page.locator(sel);
           if (await el.count() > 0) {
-            await el.first().click();
+            await el.first().click({ timeout: 5000 });
             return true;
           }
         } catch {}
@@ -115,7 +115,7 @@ export function buildQuickAddCode(entry: MacroEntry): string {
         try {
           const el = page.locator(sel);
           if (await el.count() > 0) {
-            await el.first().click({ button: 'right' });
+            await el.first().click({ button: 'right', timeout: 5000 });
             return true;
           }
         } catch {}
@@ -133,9 +133,12 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!clicked) {
         return { success: false, error: 'Could not find meal category "' + mealLabel + '" in diary' };
       }
-      await page.waitForSelector('text="Add Food..."', { timeout: 3000 }).catch(() =>
-        page.waitForSelector('text="Add Food"', { timeout: 2000 }).catch(() => {})
-      );
+      const menuVisible = await page.waitForSelector('text="Add Food..."', { timeout: 3000 })
+        .then(() => true)
+        .catch(() => page.waitForSelector('text="Add Food"', { timeout: 2000 }).then(() => true).catch(() => false));
+      if (!menuVisible) {
+        return { success: false, error: 'Context menu did not appear after right-clicking "' + mealLabel + '"' };
+      }
 
       // Click "Add Food..." in context menu
       const addFoodClicked = await clickFirst([
@@ -193,7 +196,11 @@ export function buildQuickAddCode(entry: MacroEntry): string {
         'button:has-text("SEARCH")',
         'button:has-text("Search")',
       ]);
-      await page.waitForSelector('td:has-text("' + macro.searchName + '")', { timeout: 8000 }).catch(() => {});
+      const resultsAppeared = await page.waitForSelector('td:has-text("' + macro.searchName + '")', { timeout: 8000 })
+        .then(() => true).catch(() => false);
+      if (!resultsAppeared) {
+        return { success: false, error: 'Search results did not appear for "' + macro.searchName + '"' };
+      }
 
       // Select the search result row (not the search input)
       // Target table rows/cells containing the macro name
@@ -284,8 +291,12 @@ export function buildQuickAddCode(entry: MacroEntry): string {
       if (!addClicked) {
         return { success: false, error: 'Could not find "Add to Diary" button for "' + macro.name + '"' };
       }
-      await page.waitForSelector('text="Add Food to Diary"', { state: 'hidden', timeout: 8000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      const dialogDismissed = await page.waitForSelector('text="Add Food to Diary"', { state: 'hidden', timeout: 8000 })
+        .then(() => true).catch(() => false);
+      if (!dialogDismissed) {
+        return { success: false, error: '"Add Food to Diary" dialog did not close after adding "' + macro.name + '"' };
+      }
+      await page.waitForTimeout(500);
     }
 
     return { success: true };
