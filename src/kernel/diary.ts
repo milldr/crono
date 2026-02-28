@@ -13,9 +13,9 @@
  *   navigate to diary → set date via prev/next arrows → read nutrition totals
  *
  * Cronometer diary layout (energy summary):
- *   Each meal category shows a summary like:
- *   "302 kcal • 1 g protein • 8 g carbs • 0 g fat"
- *   The daily totals are in the Energy Summary section.
+ *   The Energy Summary section shows daily totals like:
+ *   "Energy 1847 kcal", "Protein 168 g", "Carbs 200 g", "Fat 60 g"
+ *   Per-meal summaries are also present but may include non-food rows.
  *
  * Returns { success: true, entries: [{ date, calories, protein, carbs, fat }] }
  */
@@ -65,26 +65,44 @@ export function buildDiaryCode(dates: string[]): string {
     }
 
     // Helper: extract nutrition totals from the currently displayed diary page.
-    // Cronometer shows per-meal summary lines like:
-    //   "302 kcal • 1 g protein • 8 g carbs • 0 g fat"
-    // and an Energy Summary section with daily totals.
+    // Cronometer shows an Energy Summary section with daily totals
+    // ("Energy X kcal", "Protein X g", etc.) and per-meal summary lines
+    // ("302 kcal • 1 g protein • 8 g carbs • 0 g fat").
+    //
+    // We prefer the Energy Summary totals (Strategy 1) because the
+    // per-meal summary regex can match non-food rows (exercise, targets)
+    // and inflate the calorie count. See: https://github.com/milldr/crono/issues/20
     async function extractNutrition() {
       return await page.evaluate(() => {
         const bodyText = document.body.innerText;
 
-        // Strategy 1: Look for the Energy Summary totals.
-        // Cronometer shows "Energy X kcal" or "X kcal" in the totals row.
-        // Also look for individual macros in the totals section.
+        // Strategy 1: Look for individual nutrient totals in the Energy Summary.
+        // Cronometer displays "Energy  1847 kcal", "Protein  168 g", etc.
+        // .match() returns the first occurrence — the daily total.
+        const calMatch = bodyText.match(/Energy\\s+(\\d+\\.?\\d*)\\s*kcal/i);
+        const protMatch = bodyText.match(/Protein\\s+(\\d+\\.?\\d*)\\s*g/i);
+        const carbMatch = bodyText.match(/Carbs\\s+(\\d+\\.?\\d*)\\s*g/i);
+        const fatMatch = bodyText.match(/Fat\\s+(\\d+\\.?\\d*)\\s*g/i);
+
+        if (calMatch || protMatch || carbMatch || fatMatch) {
+          return {
+            calories: calMatch ? Math.round(parseFloat(calMatch[1])) : 0,
+            protein: protMatch ? Math.round(parseFloat(protMatch[1])) : 0,
+            carbs: carbMatch ? Math.round(parseFloat(carbMatch[1])) : 0,
+            fat: fatMatch ? Math.round(parseFloat(fatMatch[1])) : 0,
+          };
+        }
+
+        // Strategy 2 (fallback): Sum per-meal summary lines.
+        // Each line matches: "N kcal • N g protein • N g carbs • N g fat"
+        const mealPattern = /(\\d+\\.?\\d*)\\s*kcal\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*protein\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*carbs\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*fat/gi;
         let calories = 0;
         let protein = 0;
         let carbs = 0;
         let fat = 0;
         let found = false;
-
-        // Strategy 2: Sum all meal category summary lines.
-        // Each line matches: "N kcal • N g protein • N g carbs • N g fat"
-        const mealPattern = /(\\d+\\.?\\d*)\\s*kcal\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*protein\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*carbs\\s*[•·]\\s*(\\d+\\.?\\d*)\\s*g\\s*fat/gi;
         let match;
+
         while ((match = mealPattern.exec(bodyText)) !== null) {
           calories += parseFloat(match[1]);
           protein += parseFloat(match[2]);
@@ -99,22 +117,6 @@ export function buildDiaryCode(dates: string[]): string {
             protein: Math.round(protein),
             carbs: Math.round(carbs),
             fat: Math.round(fat),
-          };
-        }
-
-        // Strategy 3: Look for individual nutrient totals in the page.
-        // Cronometer may display "Energy  1847 kcal" and "Protein  168 g" etc.
-        const calMatch = bodyText.match(/Energy\\s+(\\d+\\.?\\d*)\\s*kcal/i);
-        const protMatch = bodyText.match(/Protein\\s+(\\d+\\.?\\d*)\\s*g/i);
-        const carbMatch = bodyText.match(/Carbs\\s+(\\d+\\.?\\d*)\\s*g/i);
-        const fatMatch = bodyText.match(/Fat\\s+(\\d+\\.?\\d*)\\s*g/i);
-
-        if (calMatch || protMatch || carbMatch || fatMatch) {
-          return {
-            calories: calMatch ? Math.round(parseFloat(calMatch[1])) : 0,
-            protein: protMatch ? Math.round(parseFloat(protMatch[1])) : 0,
-            carbs: carbMatch ? Math.round(parseFloat(carbMatch[1])) : 0,
-            fat: fatMatch ? Math.round(parseFloat(fatMatch[1])) : 0,
           };
         }
 
