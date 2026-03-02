@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { login } from "./commands/login.js";
 import { quickAdd } from "./commands/quick-add.js";
@@ -9,12 +10,15 @@ import { diary } from "./commands/diary.js";
 import { weight } from "./commands/weight.js";
 import { exportCmd } from "./commands/export.js";
 
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json");
+
 const program = new Command();
 
 program
   .name("crono")
   .description("CLI for Cronometer automation via Kernel.sh")
-  .version("0.1.0");
+  .version(version);
 
 program
   .command("login")
