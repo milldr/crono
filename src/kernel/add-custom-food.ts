@@ -205,17 +205,28 @@ export function buildAddCustomFoodCode(entry: CustomFoodEntry): string {
         return false;
       }
 
-      // Right-click the meal category
-      const mealClicked = await rightClickFirst([
-        'text="' + mealLabel + '"',
-        ':has-text("' + mealLabel + '")',
-      ], 'meal category');
-      if (!mealClicked) {
-        return { success: false, error: 'Food created but could not find meal category "' + mealLabel + '" in diary' };
+      // Right-click meal category with retry (GWT context menus can be flaky)
+      let menuVisible = false;
+      for (let attempt = 0; attempt < 3 && !menuVisible; attempt++) {
+        if (attempt > 0) {
+          await page.keyboard.press('Escape');
+          await page.mouse.click(1, 1);
+          await page.waitForTimeout(1000);
+        }
+        const mealClicked = await rightClickFirst([
+          'text="' + mealLabel + '"',
+          ':has-text("' + mealLabel + '")',
+        ], 'meal category');
+        if (!mealClicked) {
+          return { success: false, error: 'Food created but could not find meal category "' + mealLabel + '" in diary' };
+        }
+        menuVisible = await page.waitForSelector('text="Add Food..."', { timeout: 3000 })
+          .then(() => true)
+          .catch(() => page.waitForSelector('text="Add Food"', { timeout: 2000 }).then(() => true).catch(() => false));
       }
-      await page.waitForSelector('text="Add Food..."', { timeout: 3000 }).catch(() =>
-        page.waitForSelector('text="Add Food"', { timeout: 2000 }).catch(() => {})
-      );
+      if (!menuVisible) {
+        return { success: false, error: 'Food created but context menu did not appear after right-clicking "' + mealLabel + '"' };
+      }
 
       // Click "Add Food..." in context menu
       const addFoodClicked = await clickFirst([

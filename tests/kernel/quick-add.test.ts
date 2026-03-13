@@ -106,6 +106,12 @@ describe("buildQuickAddCode", () => {
     expect(code).toContain("Context menu did not appear");
   });
 
+  it("should retry right-click up to 3 times when context menu fails to appear", () => {
+    const code = buildQuickAddCode({ protein: 30 });
+    expect(code).toContain("attempt < 3");
+    expect(code).toContain("Escape");
+  });
+
   it("should check search results instead of silently catching", () => {
     const code = buildQuickAddCode({ protein: 30 });
     expect(code).toContain("resultsAppeared");

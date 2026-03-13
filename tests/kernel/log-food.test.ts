@@ -39,6 +39,13 @@ describe("buildLogFoodCode", () => {
     expect(code).toContain("addFoodClicked");
   });
 
+  it("should retry right-click up to 3 times when context menu fails to appear", () => {
+    const code = buildLogFoodCode({ name: "Test Food" });
+    expect(code).toContain("attempt < 3");
+    expect(code).toContain("menuVisible");
+    expect(code).toContain("Context menu did not appear");
+  });
+
   it("should search in the food search bar", () => {
     const code = buildLogFoodCode({ name: "Test Food" });
     expect(code).toContain("SEARCH");

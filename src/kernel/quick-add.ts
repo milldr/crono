@@ -125,17 +125,26 @@ export function buildQuickAddCode(entry: MacroEntry): string {
 
     // Add each macro as a separate food entry
     for (const macro of macros) {
-      // Right-click the meal category
-      const clicked = await rightClickFirst([
-        'text="' + mealLabel + '"',
-        ':has-text("' + mealLabel + '")',
-      ]);
-      if (!clicked) {
-        return { success: false, error: 'Could not find meal category "' + mealLabel + '" in diary' };
+      // Right-click meal category with retry (GWT context menus can be flaky)
+      let menuVisible = false;
+      for (let attempt = 0; attempt < 3 && !menuVisible; attempt++) {
+        if (attempt > 0) {
+          // Dismiss any stale state by pressing Escape and clicking away
+          await page.keyboard.press('Escape');
+          await page.mouse.click(1, 1);
+          await page.waitForTimeout(1000);
+        }
+        const clicked = await rightClickFirst([
+          'text="' + mealLabel + '"',
+          ':has-text("' + mealLabel + '")',
+        ]);
+        if (!clicked) {
+          return { success: false, error: 'Could not find meal category "' + mealLabel + '" in diary' };
+        }
+        menuVisible = await page.waitForSelector('text="Add Food..."', { timeout: 3000 })
+          .then(() => true)
+          .catch(() => page.waitForSelector('text="Add Food"', { timeout: 2000 }).then(() => true).catch(() => false));
       }
-      const menuVisible = await page.waitForSelector('text="Add Food..."', { timeout: 3000 })
-        .then(() => true)
-        .catch(() => page.waitForSelector('text="Add Food"', { timeout: 2000 }).then(() => true).catch(() => false));
       if (!menuVisible) {
         return { success: false, error: 'Context menu did not appear after right-clicking "' + mealLabel + '"' };
       }
