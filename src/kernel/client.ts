@@ -43,6 +43,15 @@ export interface DiaryData {
   protein: number;
   carbs: number;
   fat: number;
+  targets?: {
+    calories: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+  } | null;
+  exercise?: {
+    caloriesBurned: number;
+  } | null;
 }
 
 export interface CustomFoodEntry {
@@ -71,7 +80,8 @@ export interface KernelClient {
   ): Promise<WeightData[]>;
   getDiary(
     dates: string[],
-    onStatus?: (msg: string) => void
+    onStatus?: (msg: string) => void,
+    scrapeTargets?: boolean
   ): Promise<DiaryData[]>;
   addCustomFood(
     entry: CustomFoodEntry,
@@ -105,8 +115,11 @@ export async function getKernelClient(): Promise<KernelClient> {
       addQuickEntry(kernel, entry, onStatus),
     getWeight: (dates: string[], onStatus?: (msg: string) => void) =>
       getWeight(kernel, dates, onStatus),
-    getDiary: (dates: string[], onStatus?: (msg: string) => void) =>
-      getDiary(kernel, dates, onStatus),
+    getDiary: (
+      dates: string[],
+      onStatus?: (msg: string) => void,
+      scrapeTargets?: boolean
+    ) => getDiary(kernel, dates, onStatus, scrapeTargets),
     addCustomFood: (entry: CustomFoodEntry, onStatus?: (msg: string) => void) =>
       addCustomFood(kernel, entry, onStatus),
     logFood: (entry: LogFoodEntry, onStatus?: (msg: string) => void) =>
@@ -227,7 +240,8 @@ async function getWeight(
 async function getDiary(
   kernel: Kernel,
   dates: string[],
-  onStatus?: (msg: string) => void
+  onStatus?: (msg: string) => void,
+  scrapeTargets?: boolean
 ): Promise<DiaryData[]> {
   const username = getCredential("cronometer-username");
   const password = getCredential("cronometer-password");
@@ -249,7 +263,7 @@ async function getDiary(
     onStatus?.("Reading diary data...");
     const result = await kernel.browsers.playwright.execute(
       browser.session_id,
-      { code: buildDiaryCode(dates), timeout_sec: 60 }
+      { code: buildDiaryCode(dates, scrapeTargets), timeout_sec: 60 }
     );
 
     if (!result.success) {

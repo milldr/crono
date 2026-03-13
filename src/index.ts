@@ -88,6 +88,7 @@ program
   .description("View daily nutrition totals from Cronometer")
   .option("-d, --date <date>", "Date (YYYY-MM-DD)")
   .option("-r, --range <range>", "Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD)")
+  .option("-t, --targets", "Show macro targets and progress")
   .option("--json", "Output as JSON")
   .action(async (options) => {
     await diary(options);
