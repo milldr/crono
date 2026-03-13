@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { getKernelClient } from "../kernel/client.js";
+import { formatKernelError } from "../kernel/errors.js";
 import { resolveDate } from "../utils/date.js";
 
 export interface QuickAddOptions {
@@ -77,7 +78,7 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     p.outro(`Added: ${parts.join(", ")} → ${mealLabel}${dateInfo}`);
   } catch (error) {
     s.stop("Failed.");
-    p.log.error(`Failed to add entry: ${error}`);
+    p.log.error(`Failed to add entry: ${formatKernelError(error)}`);
     process.exit(1);
   }
 }

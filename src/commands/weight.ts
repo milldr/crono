@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { getKernelClient, type WeightData } from "../kernel/client.js";
+import { formatKernelError } from "../kernel/errors.js";
 import { parseDate, parseRange, dateRange, todayStr } from "../utils/date.js";
 
 export interface WeightOptions {
@@ -64,7 +65,7 @@ export async function weight(options: WeightOptions): Promise<void> {
     }
   } catch (error) {
     s?.stop("Failed.");
-    p.log.error(`Failed to read weight: ${error}`);
+    p.log.error(`Failed to read weight: ${formatKernelError(error)}`);
     process.exit(1);
   }
 }
