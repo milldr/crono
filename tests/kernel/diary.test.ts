@@ -43,4 +43,25 @@ describe("buildDiaryCode", () => {
     expect(code).toContain("carbs: 0");
     expect(code).toContain("fat: 0");
   });
+
+  it("should not scrape targets by default", () => {
+    const code = buildDiaryCode(["2026-02-10"]);
+    expect(code).toContain("const wantTargets = false");
+  });
+
+  it("should scrape targets when scrapeTargets is true", () => {
+    const code = buildDiaryCode(["2026-02-10"], true);
+    expect(code).toContain("const wantTargets = true");
+  });
+
+  it("should include target extraction patterns when scrapeTargets is true", () => {
+    const code = buildDiaryCode(["2026-02-10"], true);
+    expect(code).toContain("targets");
+    expect(code).toContain("of");
+  });
+
+  it("should include target data in entries when scrapeTargets is true", () => {
+    const code = buildDiaryCode(["2026-02-10"], true);
+    expect(code).toContain("entry.targets");
+  });
 });

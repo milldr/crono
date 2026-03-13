@@ -52,8 +52,8 @@ describe("parseRange", () => {
     expect(start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // 7 days inclusive means 6 days between start and end
-    const startDate = new Date(start + "T00:00:00");
-    const endDate = new Date(end + "T00:00:00");
+    const startDate = new Date(start + "T00:00:00Z");
+    const endDate = new Date(end + "T00:00:00Z");
     const diffMs = endDate.getTime() - startDate.getTime();
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
     expect(diffDays).toBe(6);
