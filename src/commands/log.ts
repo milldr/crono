@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { getKernelClient } from "../kernel/client.js";
+import { formatKernelError } from "../kernel/errors.js";
 
 export interface LogOptions {
   meal?: string;
@@ -50,7 +51,7 @@ export async function log(name: string, options: LogOptions): Promise<void> {
     p.outro(`Logged: ${name} → ${mealLabel}`);
   } catch (error) {
     s.stop("Failed.");
-    p.log.error(`Failed to log food: ${error}`);
+    p.log.error(`Failed to log food: ${formatKernelError(error)}`);
     process.exit(1);
   }
 }

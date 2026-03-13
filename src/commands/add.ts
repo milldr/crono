@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { getKernelClient } from "../kernel/client.js";
+import { formatKernelError } from "../kernel/errors.js";
 
 export interface AddCustomFoodOptions {
   protein?: number;
@@ -81,7 +82,7 @@ export async function addCustomFood(
     }
   } catch (error) {
     s.stop("Failed.");
-    p.log.error(`Failed to create custom food: ${error}`);
+    p.log.error(`Failed to create custom food: ${formatKernelError(error)}`);
     process.exit(1);
   }
 }

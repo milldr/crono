@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { exportData, type ExportType } from "../cronometer/export.js";
+import { formatKernelError } from "../kernel/errors.js";
 import {
   parseNutrition,
   parseExercises,
@@ -123,7 +124,7 @@ export async function exportCmd(
     }
   } catch (error) {
     s?.stop("Failed.");
-    p.log.error(`${error instanceof Error ? error.message : error}`);
+    p.log.error(formatKernelError(error));
     process.exit(1);
   }
 }

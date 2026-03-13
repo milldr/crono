@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import { getKernelClient, type DiaryData } from "../kernel/client.js";
+import { formatKernelError } from "../kernel/errors.js";
 import { parseDate, parseRange, dateRange, todayStr } from "../utils/date.js";
 
 export interface DiaryOptions {
@@ -70,7 +71,7 @@ export async function diary(options: DiaryOptions): Promise<void> {
     }
   } catch (error) {
     s?.stop("Failed.");
-    p.log.error(`Failed to read diary: ${error}`);
+    p.log.error(`Failed to read diary: ${formatKernelError(error)}`);
     process.exit(1);
   }
 }
