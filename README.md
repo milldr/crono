@@ -241,6 +241,7 @@ crono diary [options]
 | ---- | ----------------- | ----------------------------------------- |
 | `-d` | `--date <date>`   | Date (YYYY-MM-DD)                         |
 | `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD) |
+| `-t` | `--targets`       | Show macro targets and progress           |
 |      | `--json`          | Output as JSON                            |
 
 `-d` and `-r` are mutually exclusive.
@@ -260,6 +261,18 @@ crono diary -r 7d
 # → 2026-02-11: 1847 kcal | P: 168g | C: 142g | F: 58g
 # → 2026-02-10: 2103 kcal | P: 155g | C: 200g | F: 72g
 # → ...
+
+# Show targets and progress
+crono diary --targets
+# → 2994 kcal (109% of 2746) | P: 239g | C: 311g | F: 95g
+
+# Targets with range (includes averages)
+crono diary --targets -r 3d
+# → 2026-03-12: 2994 kcal (109% of 2746) | P: 239g | C: 311g | F: 95g
+# → 2026-03-11: 2770 kcal (100% of 2759) | P: 238g | C: 273g | F: 88g
+# → 2026-03-10: 2678 kcal (97% of 2750)  | P: 248g | C: 279g | F: 87g
+# → ───
+# → Average:    2814 kcal (102% of 2752)  | P: 242g | C: 288g | F: 90g
 
 # JSON output for scripting
 crono diary --json
