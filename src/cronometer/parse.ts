@@ -31,6 +31,20 @@ export interface BiometricEntry {
   amount: number | string;
 }
 
+export interface ServingEntry {
+  date: string;
+  time: string;
+  meal: string;
+  food: string;
+  amount: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  category: string;
+  [key: string]: string | number;
+}
+
 /** Parse a CSV string into rows of string arrays. Handles quoted fields. */
 export function parseCSV(csv: string): string[][] {
   const lines = csv.trim().split("\n");
@@ -152,6 +166,72 @@ export function parseExercises(csv: string): ExerciseEntry[] {
       caloriesBurned: num(row[caloriesIdx]),
       group: row[groupIdx]?.trim() ?? "",
     });
+  }
+
+  return entries;
+}
+
+export function parseServings(csv: string): ServingEntry[] {
+  const rows = parseCSV(csv);
+  if (rows.length < 2) return [];
+
+  const headers = rows[0];
+  const dayIdx = colIndex(headers, "Day");
+  const timeIdx = colIndex(headers, "Time");
+  const groupIdx = colIndex(headers, "Group");
+  const foodIdx = colIndex(headers, "Food Name");
+  const amountIdx = colIndex(headers, "Amount");
+  const energyIdx = colIndex(headers, "Energy (kcal)");
+  const proteinIdx = colIndex(headers, "Protein (g)");
+  const carbsIdx = colIndex(headers, "Carbs (g)");
+  const fatIdx = colIndex(headers, "Fat (g)");
+  const categoryIdx = colIndex(headers, "Category");
+
+  if (dayIdx === -1) return [];
+
+  const entries: ServingEntry[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const date = row[dayIdx]?.trim();
+    if (!date) continue;
+
+    const entry: ServingEntry = {
+      date,
+      time: row[timeIdx]?.trim() ?? "",
+      meal: row[groupIdx]?.trim() ?? "",
+      food: row[foodIdx]?.trim() ?? "",
+      amount: row[amountIdx]?.trim() ?? "",
+      calories: num(row[energyIdx]),
+      protein: num(row[proteinIdx]),
+      carbs: num(row[carbsIdx]),
+      fat: num(row[fatIdx]),
+      category: row[categoryIdx]?.trim() ?? "",
+    };
+
+    // Include all other nutrient columns for full JSON output
+    const surfacedIdxs = new Set([
+      dayIdx,
+      timeIdx,
+      groupIdx,
+      foodIdx,
+      amountIdx,
+      energyIdx,
+      proteinIdx,
+      carbsIdx,
+      fatIdx,
+      categoryIdx,
+    ]);
+    for (let j = 0; j < headers.length; j++) {
+      if (surfacedIdxs.has(j)) continue;
+      const key = headers[j].trim();
+      const val = row[j]?.trim() ?? "";
+      if (key && val !== "") {
+        const parsed = parseFloat(val);
+        entry[key] = isNaN(parsed) ? val : parsed;
+      }
+    }
+
+    entries.push(entry);
   }
 
   return entries;

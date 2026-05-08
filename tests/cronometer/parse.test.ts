@@ -4,6 +4,7 @@ import {
   parseNutrition,
   parseExercises,
   parseBiometrics,
+  parseServings,
 } from "../../src/cronometer/parse.js";
 
 describe("parseCSV", () => {
@@ -135,5 +136,45 @@ describe("parseBiometrics", () => {
 
   it("should return empty array for empty CSV", () => {
     expect(parseBiometrics("")).toEqual([]);
+  });
+});
+
+describe("parseServings", () => {
+  const sampleCSV = `Day,Time,Group,Food Name,Amount,Energy (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Sodium (mg),Category
+2026-02-11,07:30 PM,Dinner,"Beef Steak, Tenderloin",150.00 g,306,46.01,0,13.5,0,61.5,"Beef Products"
+2026-02-11,12:30 PM,Lunch,"Cabbage, Raw",95.00 g,26.6,0.91,6.06,0.04,2.13,15.2,"Vegetables and Vegetable Products"`;
+
+  it("should parse serving entries", () => {
+    const entries = parseServings(sampleCSV);
+    expect(entries).toHaveLength(2);
+    expect(entries[0]).toMatchObject({
+      date: "2026-02-11",
+      time: "07:30 PM",
+      meal: "Dinner",
+      food: "Beef Steak, Tenderloin",
+      amount: "150.00 g",
+      calories: 306,
+      protein: 46.01,
+      carbs: 0,
+      fat: 13.5,
+      category: "Beef Products",
+    });
+    expect(entries[1]).toMatchObject({
+      meal: "Lunch",
+      food: "Cabbage, Raw",
+      amount: "95.00 g",
+      calories: 26.6,
+    });
+  });
+
+  it("should include extra nutrient columns as additional keys", () => {
+    const entries = parseServings(sampleCSV);
+    expect(entries[0]["Fiber (g)"]).toBe(0);
+    expect(entries[0]["Sodium (mg)"]).toBe(61.5);
+    expect(entries[1]["Fiber (g)"]).toBe(2.13);
+  });
+
+  it("should return empty array for empty CSV", () => {
+    expect(parseServings("")).toEqual([]);
   });
 });

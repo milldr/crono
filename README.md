@@ -293,32 +293,46 @@ crono export <type> [options]
 
 **Types:**
 
-| Type         | Description                         |
-| ------------ | ----------------------------------- |
-| `nutrition`  | Daily nutrition totals (macros)     |
-| `exercises`  | Exercise entries with duration/cals |
-| `biometrics` | Biometric measurements (weight, BP) |
+| Type         | Granularity        | Description                                                                                   |
+| ------------ | ------------------ | --------------------------------------------------------------------------------------------- |
+| `nutrition`  | Daily totals       | Aggregated calories + 60+ nutrient columns (vitamins, minerals, amino acids, omega 3/6, etc.) |
+| `servings`   | Per food entry     | Time, meal, food name, amount, full nutrient breakdown — answers "what did I have for dinner" |
+| `exercises`  | Per exercise entry | Time, exercise name, duration, calories burned, group                                         |
+| `biometrics` | Per measurement    | Weight, BP, plus anything Apple Health pushes in (heart rate, HRV, sleep)                     |
 
 **Options:**
 
-| Flag | Long              | Description                               |
-| ---- | ----------------- | ----------------------------------------- |
-| `-d` | `--date <date>`   | Date (YYYY-MM-DD)                         |
-| `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD) |
-|      | `--csv`           | Output as raw CSV                         |
-|      | `--json`          | Output as JSON                            |
+| Flag | Long              | Description                                                             |
+| ---- | ----------------- | ----------------------------------------------------------------------- |
+| `-d` | `--date <date>`   | Date (YYYY-MM-DD)                                                       |
+| `-r` | `--range <range>` | Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD)                               |
+| `-m` | `--meal <name>`   | `servings` only: filter to a meal (Breakfast / Lunch / Dinner / Snacks) |
+|      | `--csv`           | Output as raw CSV                                                       |
+|      | `--json`          | Output as JSON                                                          |
 
 `-d` and `-r` are mutually exclusive. `--csv` and `--json` are mutually exclusive.
 
 **Examples:**
 
 ```bash
-# Today's nutrition
+# Today's nutrition (daily totals)
 crono export nutrition
 # → 1847 kcal | P: 168g | C: 142g | F: 58g
 
 # Last 7 days of nutrition as JSON
 crono export nutrition -r 7d --json
+
+# What did I have for dinner today? (per-food breakdown)
+crono export servings -m Dinner
+# → 7:30 PM | Dinner | Beef Steak | 150g | 306 kcal | P: 46g  C: 0g  F: 13.5g
+# → ...
+# → Total: 672 kcal | P: 70.1g  C: 43.5g  F: 34.3g
+
+# Yesterday's full food log
+crono export servings -d yesterday
+
+# Last 7 days of food entries as JSON (each entry includes all 60+ nutrient columns)
+crono export servings -r 7d --json
 
 # Today's exercises
 crono export exercises

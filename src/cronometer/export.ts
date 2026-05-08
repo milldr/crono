@@ -14,12 +14,13 @@ const BASE_URL = "https://cronometer.com";
 const DEFAULT_GWT_PERMUTATION = "7B121DC5483BF272B1BC1916DA9FA963";
 const DEFAULT_GWT_HEADER = "2D6A926E3729946302DC68073CB0D550";
 
-export type ExportType = "nutrition" | "exercises" | "biometrics";
+export type ExportType = "nutrition" | "exercises" | "biometrics" | "servings";
 
 const EXPORT_TYPE_MAP: Record<ExportType, string> = {
   nutrition: "dailySummary",
   exercises: "exercises",
   biometrics: "biometrics",
+  servings: "servings",
 };
 
 /** Build GWT RPC body for generateAuthorizationToken. */

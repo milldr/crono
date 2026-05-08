@@ -96,9 +96,15 @@ program
 
 program
   .command("export <type>")
-  .description("Export data from Cronometer (nutrition, exercises, biometrics)")
+  .description(
+    "Export data from Cronometer (nutrition, exercises, biometrics, servings)"
+  )
   .option("-d, --date <date>", "Date (YYYY-MM-DD)")
   .option("-r, --range <range>", "Range (7d, 30d, or YYYY-MM-DD:YYYY-MM-DD)")
+  .option(
+    "-m, --meal <name>",
+    "Filter servings by meal (Breakfast, Lunch, Dinner, Snacks)"
+  )
   .option("--csv", "Output as CSV")
   .option("--json", "Output as JSON")
   .action(async (type, options) => {

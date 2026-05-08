@@ -5,19 +5,27 @@ import {
   parseNutrition,
   parseExercises,
   parseBiometrics,
+  parseServings,
   type NutritionEntry,
   type ExerciseEntry,
   type BiometricEntry,
+  type ServingEntry,
 } from "../cronometer/parse.js";
 import { parseDate, parseRange, todayStr } from "../utils/date.js";
 
-const VALID_TYPES = ["nutrition", "exercises", "biometrics"] as const;
+const VALID_TYPES = [
+  "nutrition",
+  "exercises",
+  "biometrics",
+  "servings",
+] as const;
 
 export interface ExportOptions {
   date?: string;
   range?: string;
   csv?: boolean;
   json?: boolean;
+  meal?: string;
 }
 
 export async function exportCmd(
@@ -26,7 +34,9 @@ export async function exportCmd(
 ): Promise<void> {
   // Validate type
   if (!VALID_TYPES.includes(type as ExportType)) {
-    p.log.error("Unknown export type. Use: nutrition, exercises, biometrics");
+    p.log.error(
+      "Unknown export type. Use: nutrition, exercises, biometrics, servings"
+    );
     process.exit(1);
   }
 
@@ -87,6 +97,27 @@ export async function exportCmd(
 
     // Parse and output
     const exportType = type as ExportType;
+    if (exportType === "servings") {
+      let entries = parseServings(csv);
+      if (options.meal) {
+        const target = options.meal.toLowerCase();
+        entries = entries.filter((e) => e.meal.toLowerCase() === target);
+      }
+      if (entries.length === 0) {
+        if (!silent) {
+          const suffix = options.meal ? ` for meal "${options.meal}"` : "";
+          p.outro(`No servings found${suffix}`);
+        }
+        return;
+      }
+      if (options.json) {
+        console.log(JSON.stringify(isRange ? entries : entries, null, 2));
+      } else {
+        formatServings(entries, isRange);
+      }
+      return;
+    }
+
     if (exportType === "nutrition") {
       const entries = parseNutrition(csv);
       if (entries.length === 0) {
@@ -154,6 +185,28 @@ function formatExercises(entries: ExerciseEntry[], isRange: boolean): void {
   for (const e of entries) {
     p.log.info(
       `${e.date}: ${e.exercise}: ${e.minutes} min, ${e.caloriesBurned} kcal`
+    );
+  }
+}
+
+function formatServings(entries: ServingEntry[], isRange: boolean): void {
+  const datePrefix = isRange;
+  for (const e of entries) {
+    const prefix = datePrefix ? `${e.date} ` : "";
+    p.log.info(
+      `${prefix}${e.time} | ${e.meal} | ${e.food} | ${e.amount} | ${e.calories} kcal | P: ${e.protein}g  C: ${e.carbs}g  F: ${e.fat}g`
+    );
+  }
+
+  // Totals (useful when filtering by meal or showing one day)
+  if (entries.length > 1) {
+    const totalCal = entries.reduce((s, e) => s + e.calories, 0);
+    const totalP = entries.reduce((s, e) => s + e.protein, 0);
+    const totalC = entries.reduce((s, e) => s + e.carbs, 0);
+    const totalF = entries.reduce((s, e) => s + e.fat, 0);
+    p.log.info("───");
+    p.log.info(
+      `Total: ${totalCal.toFixed(0)} kcal | P: ${totalP.toFixed(1)}g  C: ${totalC.toFixed(1)}g  F: ${totalF.toFixed(1)}g`
     );
   }
 }
