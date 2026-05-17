@@ -5,6 +5,7 @@ import { join } from "path";
 export interface CronoConfig {
   useKernel?: boolean;
   kernelProfile?: string;
+  playwrightHeadless?: boolean;
   defaultMeal?: string;
   gwtPermutation?: string;
   gwtHeader?: string;

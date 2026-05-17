@@ -9,7 +9,7 @@ import type {
   AutomationClient,
   AutomationRuntime,
 } from "../automation/types.js";
-import { getPlaywrightProfileDir } from "../config.js";
+import { getPlaywrightProfileDir, loadConfig } from "../config.js";
 
 export async function getPlaywrightClient(): Promise<AutomationClient> {
   return createAutomationClient(createPlaywrightRuntime);
@@ -26,11 +26,14 @@ async function createPlaywrightRuntime(): Promise<AutomationRuntime> {
 }
 
 async function createContext(): Promise<BrowserContext> {
+  const config = loadConfig();
   const profileDir = getPlaywrightProfileDir();
   mkdirSync(profileDir, { recursive: true });
 
   return chromium.launchPersistentContext(profileDir, {
-    headless: false,
+    headless:
+      config.playwrightHeadless ??
+      (process.platform === "linux" && !process.env["DISPLAY"]),
   });
 }
 

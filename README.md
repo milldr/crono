@@ -351,7 +351,8 @@ crono export nutrition -r 30d --csv
 
 ```json
 {
-  "useKernel": false
+  "useKernel": false,
+  "playwrightHeadless": true
 }
 ```
 
