@@ -7,6 +7,7 @@
 
 import * as p from "@clack/prompts";
 import Kernel from "@onkernel/sdk";
+import { loadConfig, saveConfig } from "../config.js";
 import { getCredential, setCredential } from "../credentials.js";
 
 /**
@@ -44,6 +45,7 @@ function mask(value: string): string {
  * Pressing Enter without typing keeps the existing value.
  */
 export async function login(): Promise<void> {
+  const existingConfig = loadConfig();
   const existingKey = getCredential("kernel-api-key");
   const existingEmail = getCredential("cronometer-username");
   const existingPassword = getCredential("cronometer-password");
@@ -56,40 +58,62 @@ export async function login(): Promise<void> {
     );
   }
 
-  // 1. Kernel API key
-  const apiKeyInput = await p.text({
-    message: "Kernel API key",
-    placeholder: existingKey ? mask(existingKey) : "sk-...",
-    defaultValue: existingKey ?? undefined,
+  // 1. Automation backend
+  const useKernelInput = await p.confirm({
+    message: "Use Kernel remote browser?",
+    initialValue: existingConfig.useKernel ?? true,
   });
 
-  if (p.isCancel(apiKeyInput)) {
+  if (p.isCancel(useKernelInput)) {
     p.cancel("Login cancelled.");
     process.exit(0);
   }
 
-  const apiKey = apiKeyInput || existingKey;
+  const useKernel = useKernelInput;
 
-  if (!apiKey) {
-    p.cancel("API key cannot be empty.");
-    process.exit(1);
-  }
+  // 2. Kernel API key
+  let apiKeyInput: string | symbol | undefined;
+  let apiKey: string | null | undefined = existingKey;
 
-  // Only validate if the key changed
-  if (apiKeyInput && apiKeyInput !== existingKey) {
-    const s = p.spinner();
-    s.start("Validating API key...");
-    try {
-      await validateKernelApiKey(apiKey);
-      s.stop("API key valid.");
-    } catch {
-      s.stop("API key invalid.");
-      p.cancel("Invalid API key. Check your key at https://kernel.sh");
+  if (useKernel) {
+    apiKeyInput = await p.text({
+      message: "Kernel API key",
+      placeholder: existingKey ? mask(existingKey) : "sk-...",
+      defaultValue: existingKey ?? undefined,
+    });
+
+    if (p.isCancel(apiKeyInput)) {
+      p.cancel("Login cancelled.");
+      process.exit(0);
+    }
+
+    apiKey = typeof apiKeyInput === "string" ? apiKeyInput : existingKey;
+
+    if (!apiKey) {
+      p.cancel("API key cannot be empty when Kernel is enabled.");
       process.exit(1);
+    }
+
+    // Only validate if the key changed
+    if (
+      typeof apiKeyInput === "string" &&
+      apiKeyInput &&
+      apiKeyInput !== existingKey
+    ) {
+      const s = p.spinner();
+      s.start("Validating API key...");
+      try {
+        await validateKernelApiKey(apiKey);
+        s.stop("API key valid.");
+      } catch {
+        s.stop("API key invalid.");
+        p.cancel("Invalid API key. Check your key at https://kernel.sh");
+        process.exit(1);
+      }
     }
   }
 
-  // 2. Cronometer email
+  // 3. Cronometer email
   const emailInput = await p.text({
     message: "Cronometer email",
     defaultValue: existingEmail ?? undefined,
@@ -111,7 +135,7 @@ export async function login(): Promise<void> {
     process.exit(1);
   }
 
-  // 3. Cronometer password
+  // 4. Cronometer password
   let password: string | undefined;
 
   if (existingPassword) {
@@ -159,13 +183,25 @@ export async function login(): Promise<void> {
     process.exit(1);
   }
 
-  // Store credentials
-  setCredential("kernel-api-key", apiKey);
+  // Store config and credentials
+  saveConfig({ ...existingConfig, useKernel });
+  if (apiKey) {
+    setCredential("kernel-api-key", apiKey);
+  }
   setCredential("cronometer-username", email);
   setCredential("cronometer-password", password);
 
   const changed: string[] = [];
-  if (apiKeyInput && apiKeyInput !== existingKey) changed.push("API key");
+  if (useKernel !== (existingConfig.useKernel ?? true)) {
+    changed.push("backend");
+  }
+  if (
+    typeof apiKeyInput === "string" &&
+    apiKeyInput &&
+    apiKeyInput !== existingKey
+  ) {
+    changed.push("API key");
+  }
   if (emailInput && emailInput !== existingEmail) changed.push("email");
   if (password !== existingPassword) changed.push("password");
 

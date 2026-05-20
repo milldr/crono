@@ -8,15 +8,21 @@
 
 /**
  * Generate code that checks if the user is logged into Cronometer.
- * Navigates to /#diary and checks if we get redirected to a login page.
+ * Navigates to /#diary and checks if login UI is still presented.
  */
 export function buildLoginCheckCode(): string {
   return `
     await page.goto('https://cronometer.com/#diary', { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(1000);
     const url = page.url();
-    const isLoggedIn = url.includes('#diary') && !url.includes('/login') && !url.includes('/signin');
-    return { success: true, loggedIn: isLoggedIn, url };
+    ${buildLoginPresentedCheckCode()}
+    const diaryPresented = await page.evaluate(() => {
+      return !!document.querySelector('i.diary-date-previous, i.diary-date-next') ||
+        /Energy\\s+\\d+\\.?\\d*\\s*kcal/i.test(document.body.innerText);
+    }).catch(() => false);
+    const isLoggedIn = url.includes('#diary') && !url.includes('/login') && !url.includes('/signin') && !loginPresented && diaryPresented;
+    return { success: true, loggedIn: isLoggedIn, url, loginPresented, diaryPresented };
   `;
 }
 
@@ -122,7 +128,8 @@ export function buildAutoLoginCode(username: string, password: string): string {
     await page.waitForTimeout(500);
 
     const url = page.url();
-    const loggedIn = !url.includes('/login') && !url.includes('/signin');
+    ${buildLoginPresentedCheckCode()}
+    const loggedIn = !url.includes('/login') && !url.includes('/signin') && !loginPresented;
 
     // If still on login page, check for error messages (rate limit, wrong creds, etc.)
     let loginError = null;
@@ -147,5 +154,29 @@ export function buildAutoLoginCode(username: string, password: string): string {
     }
 
     return { success: true, loggedIn, url, loginError };
+  `;
+}
+
+function buildLoginPresentedCheckCode(): string {
+  return `
+    const loginPresented = await page.evaluate(() => {
+      const visible = (el) => {
+        const style = window.getComputedStyle(el);
+        return style && style.visibility !== 'hidden' && style.display !== 'none' && el.getClientRects().length > 0;
+      };
+      const hasVisibleSelector = (selector) =>
+        Array.from(document.querySelectorAll(selector)).some((el) => visible(el));
+      const hasLoginInput =
+        hasVisibleSelector('input[type="email"], input[name="username"], input[name="email"], #email, #username') ||
+        hasVisibleSelector('input[type="password"], input[name="password"], #password');
+      const hasLoginAction = Array.from(document.querySelectorAll('a, button'))
+        .filter((el) => visible(el))
+        .some((el) => {
+          const text = el.textContent?.replace(/\\s+/g, ' ').trim().toLowerCase() ?? '';
+          return ['log in', 'login', 'sign in', 'signin'].includes(text);
+        });
+
+      return hasLoginInput || hasLoginAction;
+    }).catch(() => false);
   `;
 }

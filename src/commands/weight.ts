@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
-import { getKernelClient, type WeightData } from "../kernel/client.js";
+import { getAutomationClient } from "../automation/client.js";
+import type { WeightData } from "../automation/types.js";
 import { formatKernelError } from "../kernel/errors.js";
 import { parseDate, parseRange, dateRange, todayStr } from "../utils/date.js";
 
@@ -43,8 +44,8 @@ export async function weight(options: WeightOptions): Promise<void> {
   s?.start("Connecting...");
 
   try {
-    const kernel = await getKernelClient();
-    const entries = await kernel.getWeight(dates, (msg) => s?.message(msg));
+    const client = await getAutomationClient();
+    const entries = await client.getWeight(dates, (msg) => s?.message(msg));
 
     s?.stop("Done.");
 

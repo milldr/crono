@@ -92,6 +92,17 @@ describe("buildAddCustomFoodCode", () => {
     expect(code).toContain("Dinner");
   });
 
+  it("should log selected custom food without requiring the Serving Size panel", () => {
+    const code = buildAddCustomFoodCode({
+      name: "Test Food",
+      protein: 30,
+      log: "Snacks",
+    });
+    expect(code).toContain("addToDiarySelectors");
+    expect(code).toContain('after selecting "');
+    expect(code).not.toContain("Serving Size panel did not appear");
+  });
+
   it("should normalize meal name in log to title case", () => {
     const code = buildAddCustomFoodCode({
       name: "Test Food",

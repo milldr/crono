@@ -3,7 +3,9 @@ import { homedir } from "os";
 import { join } from "path";
 
 export interface CronoConfig {
+  useKernel?: boolean;
   kernelProfile?: string;
+  playwrightHeadless?: boolean;
   defaultMeal?: string;
   gwtPermutation?: string;
   gwtHeader?: string;
@@ -52,4 +54,11 @@ export function saveConfig(config: CronoConfig): void {
  */
 export function getSessionDir(): string {
   return join(CONFIG_DIR, "sessions");
+}
+
+/**
+ * Get the local Playwright profile directory.
+ */
+export function getPlaywrightProfileDir(): string {
+  return join(CONFIG_DIR, "playwright-profile");
 }

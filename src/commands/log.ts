@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import { getKernelClient } from "../kernel/client.js";
+import { getAutomationClient } from "../automation/client.js";
 import { formatKernelError } from "../kernel/errors.js";
 
 export interface LogOptions {
@@ -37,8 +37,8 @@ export async function log(name: string, options: LogOptions): Promise<void> {
   s.start("Connecting...");
 
   try {
-    const kernel = await getKernelClient();
-    await kernel.logFood(
+    const client = await getAutomationClient();
+    await client.logFood(
       {
         name,
         meal: options.meal,

@@ -347,6 +347,23 @@ crono export biometrics -r 30d
 crono export nutrition -r 30d --csv
 ```
 
+**Config:** `crono login` writes backend preference to `~/.config/crono/config.json`. Kernel remains the default; set `useKernel` to `false` to use a local Playwright browser profile instead:
+
+```json
+{
+  "useKernel": false,
+  "playwrightHeadless": true
+}
+```
+
+Local Playwright session data is stored in `~/.config/crono/playwright-profile`.
+
+When using the local Playwright backend, install the browser binaries once:
+
+```bash
+npx playwright install
+```
+
 **GWT overrides:** If Cronometer updates break the export, override GWT values in `~/.config/crono/config.json` or via environment variables:
 
 ```bash
@@ -357,7 +374,7 @@ export CRONO_GWT_HEADER=<new-value>
 ## Requirements
 
 - Node.js 18+
-- [Kernel.sh](https://kernel.sh) account (for browser automation)
+- [Kernel.sh](https://kernel.sh) account (for Kernel browser automation)
 - [Cronometer](https://cronometer.com) account
 
 ## Development

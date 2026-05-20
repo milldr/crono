@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
-import { getKernelClient, type DiaryData } from "../kernel/client.js";
+import { getAutomationClient } from "../automation/client.js";
+import type { DiaryData } from "../automation/types.js";
 import { formatKernelError } from "../kernel/errors.js";
 import { parseDate, parseRange, dateRange, todayStr } from "../utils/date.js";
 import { exportData } from "../cronometer/export.js";
@@ -46,10 +47,10 @@ export async function diary(options: DiaryOptions): Promise<void> {
   s?.start("Connecting...");
 
   try {
-    const kernel = await getKernelClient();
+    const client = await getAutomationClient();
 
     // When --targets is used, fetch exercise data concurrently with diary scraping
-    const diaryPromise = kernel.getDiary(
+    const diaryPromise = client.getDiary(
       dates,
       (msg) => s?.message(msg),
       options.targets

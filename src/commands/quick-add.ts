@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import { getKernelClient } from "../kernel/client.js";
+import { getAutomationClient } from "../automation/client.js";
 import { formatKernelError } from "../kernel/errors.js";
 import { resolveDate } from "../utils/date.js";
 
@@ -60,8 +60,8 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
   s.start("Connecting...");
 
   try {
-    const kernel = await getKernelClient();
-    await kernel.addQuickEntry(
+    const client = await getAutomationClient();
+    await client.addQuickEntry(
       {
         protein: options.protein,
         carbs: options.carbs,

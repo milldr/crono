@@ -17,6 +17,20 @@ describe("buildLoginCheckCode", () => {
     expect(code).toContain("loggedIn");
   });
 
+  it("should not trust the diary URL when login UI is shown", () => {
+    const code = buildLoginCheckCode();
+    expect(code).toContain("loginPresented");
+    expect(code).toContain("hasLoginInput");
+    expect(code).toContain("hasLoginAction");
+  });
+
+  it("should require actual diary UI before treating the session as logged in", () => {
+    const code = buildLoginCheckCode();
+    expect(code).toContain("diaryPresented");
+    expect(code).toContain("diary-date-previous");
+    expect(code).toContain("Energy\\s+\\d+");
+  });
+
   it("should return a result object", () => {
     const code = buildLoginCheckCode();
     expect(code).toContain("return {");
@@ -60,6 +74,12 @@ describe("buildAutoLoginCode", () => {
     const code = buildAutoLoginCode("user@test.com", "password123");
     expect(code).toContain("loggedIn");
     expect(code).toContain("/login");
+  });
+
+  it("should reject login success if login UI is still shown", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    expect(code).toContain("loginPresented");
+    expect(code).toContain("!loginPresented");
   });
 
   it("should return a result object", () => {

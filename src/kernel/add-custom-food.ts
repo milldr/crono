@@ -307,22 +307,22 @@ export function buildAddCustomFoodCode(entry: CustomFoodEntry): string {
       }
       await page.waitForTimeout(200);
 
-      // Wait for serving size panel
-      try {
-        await page.waitForSelector('text="Serving Size"', { timeout: 5000 });
-      } catch {
-        return { success: false, error: 'Food created but Serving Size panel did not appear' };
-      }
-      await page.waitForTimeout(500);
-
       // Click "ADD TO DIARY"
-      const addClicked = await clickFirst([
+      const addToDiarySelectors = [
         'button:has-text("ADD TO DIARY")',
         'button:has-text("Add to Diary")',
         'text="ADD TO DIARY"',
         'text="Add to Diary"',
         'button[type="submit"]',
-      ], 'ADD TO DIARY button');
+      ];
+      const addButtonReady = await page.waitForSelector(addToDiarySelectors.join(', '), { timeout: 5000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!addButtonReady) {
+        return { success: false, error: 'Food created but could not find "Add to Diary" button after selecting "' + foodName + '"' };
+      }
+
+      const addClicked = await clickFirst(addToDiarySelectors, 'ADD TO DIARY button');
       if (!addClicked) {
         return { success: false, error: 'Food created but could not find "Add to Diary" button' };
       }

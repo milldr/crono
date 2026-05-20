@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import { getKernelClient } from "../kernel/client.js";
+import { getAutomationClient } from "../automation/client.js";
 import { formatKernelError } from "../kernel/errors.js";
 
 export interface AddCustomFoodOptions {
@@ -60,8 +60,8 @@ export async function addCustomFood(
   s.start("Connecting...");
 
   try {
-    const kernel = await getKernelClient();
-    await kernel.addCustomFood(
+    const client = await getAutomationClient();
+    await client.addCustomFood(
       {
         name,
         protein: options.protein,
