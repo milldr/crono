@@ -49,6 +49,15 @@ export interface RecipeData {
   name: string;
 }
 
+export interface BiometricEntry {
+  type: "weight" | "bodyfat" | "bloodpressure";
+  value?: number;
+  unit?: string;
+  systolic?: number;
+  diastolic?: number;
+  date: string;
+}
+
 export interface AutomationClient {
   addQuickEntry(
     entry: MacroEntry,
@@ -69,6 +78,10 @@ export interface AutomationClient {
   ): Promise<void>;
   logFood(entry: LogFoodEntry, onStatus?: (msg: string) => void): Promise<void>;
   getRecipes(onStatus?: (msg: string) => void): Promise<RecipeData[]>;
+  logBiometric(
+    entry: BiometricEntry,
+    onStatus?: (msg: string) => void
+  ): Promise<void>;
 }
 
 export interface PlaywrightExecutionResponse<T = unknown> {

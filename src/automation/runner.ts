@@ -1,6 +1,7 @@
 import * as p from "@clack/prompts";
 import { getCredential } from "../credentials.js";
 import { buildAddCustomFoodCode } from "../kernel/add-custom-food.js";
+import { buildBiometricsCode } from "../kernel/biometrics.js";
 import { buildDiaryCode } from "../kernel/diary.js";
 import { buildLogFoodCode } from "../kernel/log-food.js";
 import { buildRecipesCode } from "../kernel/recipes.js";
@@ -15,6 +16,7 @@ import type {
   AutomationClient,
   AutomationRuntime,
   AutomationRuntimeFactory,
+  BiometricEntry,
   CustomFoodEntry,
   DiaryData,
   LogFoodEntry,
@@ -113,6 +115,25 @@ export function createAutomationClient(
           );
         }
         return data.recipes ?? [];
+      }),
+    logBiometric: (entry: BiometricEntry, onStatus?: (msg: string) => void) =>
+      withLoggedInRuntime(createRuntime, onStatus, async (runtime) => {
+        const typeLabel =
+          entry.type === "weight"
+            ? "weight"
+            : entry.type === "bodyfat"
+              ? "body fat"
+              : "blood pressure";
+        onStatus?.(`Logging ${typeLabel}...`);
+        const data = await executeAutomation<{
+          success: boolean;
+          error?: string;
+        }>(runtime, buildBiometricsCode(entry), 60);
+        if (!data.success) {
+          throw new Error(
+            `Biometric logging failed: ${data.error ?? "Unknown error"}`
+          );
+        }
       }),
   };
 }

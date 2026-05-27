@@ -283,6 +283,50 @@ crono diary -r 7d --json
 # → [{"date":"2026-02-11","calories":1847,"protein":168,"carbs":142,"fat":58}, ...]
 ```
 
+### `crono biometrics`
+
+Log biometrics to Cronometer (weight, body fat percentage, blood pressure). Defaults to today if no date is specified.
+
+```bash
+crono biometrics [options]
+```
+
+**Options:**
+
+| Flag | Long                  | Description                          |
+| ---- | --------------------- | ------------------------------------ |
+| `-w` | `--weight <value>`    | Weight value                         |
+| `-b` | `--body-fat <value>`  | Body fat percentage                  |
+| `-s` | `--systolic <value>`  | Systolic blood pressure (mmHg)       |
+| `-d` | `--diastolic <value>` | Diastolic blood pressure (mmHg)      |
+|      | `--date <date>`       | Date (YYYY-MM-DD, yesterday, -1d)    |
+| `-u` | `--unit <unit>`       | Weight unit (kg or lbs), default: kg |
+
+At least one biometric value is required. Blood pressure requires both systolic and diastolic values.
+
+**Examples:**
+
+```bash
+# Log weight in kg (default)
+crono biometrics --weight 90
+
+# Log weight in lbs
+crono biometrics --weight 198 --unit lbs
+
+# Log body fat percentage
+crono biometrics --body-fat 19
+
+# Log blood pressure
+crono biometrics --systolic 130 --diastolic 76
+
+# Log weight for yesterday
+crono biometrics --weight 90 --date yesterday
+
+# Log multiple biometrics (requires multiple commands)
+crono biometrics --weight 90
+crono biometrics --body-fat 19
+```
+
 ### `crono recipes`
 
 List your custom recipes from Cronometer.

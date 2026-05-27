@@ -10,6 +10,7 @@ import { diary } from "./commands/diary.js";
 import { weight } from "./commands/weight.js";
 import { exportCmd } from "./commands/export.js";
 import { recipes } from "./commands/recipes.js";
+import { biometrics } from "./commands/biometrics.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json");
@@ -118,6 +119,29 @@ program
   .option("--json", "Output as JSON")
   .action(async (options) => {
     await recipes(options);
+  });
+
+program
+  .command("biometrics")
+  .description(
+    "Log biometrics to Cronometer (weight, body fat, blood pressure)"
+  )
+  .option("-w, --weight <value>", "Weight value", parseFloat)
+  .option("-b, --body-fat <value>", "Body fat percentage", parseFloat)
+  .option(
+    "-s, --systolic <value>",
+    "Systolic blood pressure (mmHg)",
+    parseFloat
+  )
+  .option(
+    "-d, --diastolic <value>",
+    "Diastolic blood pressure (mmHg)",
+    parseFloat
+  )
+  .option("--date <date>", "Date (YYYY-MM-DD, yesterday, -1d)")
+  .option("-u, --unit <unit>", "Weight unit (kg or lbs)", "kg")
+  .action(async (options) => {
+    await biometrics(options);
   });
 
 program.parse();
