@@ -215,7 +215,11 @@ async function autoLogin(
 
     throw new Error(
       `Auto-login failed: ${data.error ?? data.loginError ?? "Login verification failed"}.\n` +
-        "Your credentials may be incorrect. Run `crono login` to update them."
+        "Your credentials may be incorrect — run `crono login` to update them.\n" +
+        "If they are known good, Cronometer is most likely throttling logins: it\n" +
+        "then serves the logged-out marketing page with no error text, which\n" +
+        "surfaces as this message. Wait a few minutes before trying again;\n" +
+        "retrying in a loop extends the throttle."
     );
   }
 }
