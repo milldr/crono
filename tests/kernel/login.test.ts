@@ -46,10 +46,17 @@ describe("buildNavigateToLoginCode", () => {
 });
 
 describe("buildAutoLoginCode", () => {
-  it("should start at cronometer.com and click login link", () => {
+  it("should navigate directly to the login page", () => {
     const code = buildAutoLoginCode("user@test.com", "password123");
-    expect(code).toContain("cronometer.com");
-    expect(code).toContain("loginLinkSelectors");
+    expect(code).toContain("cronometer.com/login/");
+  });
+
+  it("should not depend on clicking the marketing homepage login link", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    // The homepage link often fails to navigate, and clicking it suppressed
+    // the direct-navigation fallback.
+    expect(code).not.toContain("loginLinkSelectors");
+    expect(code).not.toContain("clickedLogin");
   });
 
   it("should fill email field", () => {
@@ -80,6 +87,19 @@ describe("buildAutoLoginCode", () => {
     const code = buildAutoLoginCode("user@test.com", "password123");
     expect(code).toContain("loginPresented");
     expect(code).toContain("!loginPresented");
+  });
+
+  it("should confirm login with a positive diary signal", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    expect(code).toContain("diaryPresented");
+    expect(code).toContain("diary-date-previous");
+    expect(code).toContain("diaryPresented || !loginPresented");
+  });
+
+  it("should let the app shell settle before verifying", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    // A 500ms wait raced the GWT boot and failed successful logins.
+    expect(code).not.toContain("waitForTimeout(500)");
   });
 
   it("should return a result object", () => {

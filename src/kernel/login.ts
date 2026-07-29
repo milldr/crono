@@ -17,10 +17,7 @@ export function buildLoginCheckCode(): string {
     await page.waitForTimeout(1000);
     const url = page.url();
     ${buildLoginPresentedCheckCode()}
-    const diaryPresented = await page.evaluate(() => {
-      return !!document.querySelector('i.diary-date-previous, i.diary-date-next') ||
-        /Energy\\s+\\d+\\.?\\d*\\s*kcal/i.test(document.body.innerText);
-    }).catch(() => false);
+    ${buildDiaryPresentedCheckCode()}
     const isLoggedIn = url.includes('#diary') && !url.includes('/login') && !url.includes('/signin') && !loginPresented && diaryPresented;
     return { success: true, loggedIn: isLoggedIn, url, loginPresented, diaryPresented };
   `;
@@ -41,36 +38,24 @@ export function buildNavigateToLoginCode(): string {
  * Generate Playwright code that automates Cronometer login.
  * Fills email/password, submits, and verifies login succeeded.
  * Credentials are embedded via JSON.stringify for safe escaping.
+ *
+ * Navigates directly to /login/. An earlier version loaded the marketing
+ * homepage and clicked its "Log In" link, but that click frequently does not
+ * navigate — and because the loop recorded a successful *click* it also
+ * suppressed the direct-navigation fallback, leaving the form unreachable and
+ * failing with "Could not find email input on https://cronometer.com/".
  */
 export function buildAutoLoginCode(username: string, password: string): string {
   const safeUser = JSON.stringify(username);
   const safePass = JSON.stringify(password);
 
   return `
-    // Navigate to cronometer.com and click through to the login page
-    await page.goto('https://cronometer.com', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-
-    // Click the "Log In" link in the top navigation
-    const loginLinkSelectors = ['a[href="/login/"]', 'a[href="/login"]', 'a:has-text("Log In")', 'a:has-text("Login")'];
-    let clickedLogin = false;
-    for (const sel of loginLinkSelectors) {
-      try {
-        const el = page.locator(sel);
-        if (await el.count() > 0) {
-          await el.first().click();
-          clickedLogin = true;
-          break;
-        }
-      } catch {}
-    }
-    if (!clickedLogin) {
-      // Fallback: navigate directly
-      await page.goto('https://cronometer.com/login/', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    }
+    // Navigate straight to the login page.
+    await page.goto('https://cronometer.com/login/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
     // Wait for login page to load
-    await page.waitForSelector('input[type="email"], input[name="username"], input[name="email"], #email, #username', { timeout: 10000 }).catch(() => {});
+    await page.waitForSelector('input[type="email"], input[name="username"], input[name="email"], #email, #username', { timeout: 15000 }).catch(() => {});
 
     // Fill email — try multiple selectors
     const emailSelectors = ['input[type="email"]', 'input[name="username"]', 'input[name="email"]', '#email', '#username'];
@@ -123,13 +108,23 @@ export function buildAutoLoginCode(username: string, password: string): string {
       return { success: false, loggedIn: false, url: page.url(), error: 'Could not find submit button on ' + page.url() };
     }
 
-    // Wait for navigation after login
+    // Wait for navigation after login. The GWT app then needs a moment to swap
+    // the login UI for the app shell — checking too early made a login that had
+    // actually succeeded report "Login verification failed".
     await page.waitForURL(u => !u.href.includes('/login') && !u.href.includes('/signin'), { timeout: 15000 }).catch(() => {});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+
+    // Confirm with a positive signal — that the diary actually renders — rather
+    // than relying only on the absence of login UI, which races the app's boot.
+    await page.goto('https://cronometer.com/#diary', { waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await page.waitForTimeout(2000);
 
     const url = page.url();
     ${buildLoginPresentedCheckCode()}
-    const loggedIn = !url.includes('/login') && !url.includes('/signin') && !loginPresented;
+    ${buildDiaryPresentedCheckCode()}
+    const loggedIn = !url.includes('/login') && !url.includes('/signin') && (diaryPresented || !loginPresented);
 
     // If still on login page, check for error messages (rate limit, wrong creds, etc.)
     let loginError = null;
@@ -154,6 +149,19 @@ export function buildAutoLoginCode(username: string, password: string): string {
     }
 
     return { success: true, loggedIn, url, loginError };
+  `;
+}
+
+/**
+ * Generate code that sets `diaryPresented` — a positive signal that the diary
+ * UI actually rendered, rather than the mere absence of login UI.
+ */
+function buildDiaryPresentedCheckCode(): string {
+  return `
+    const diaryPresented = await page.evaluate(() => {
+      return !!document.querySelector('i.diary-date-previous, i.diary-date-next') ||
+        /Energy\\s+\\d+\\.?\\d*\\s*kcal/i.test(document.body.innerText);
+    }).catch(() => false);
   `;
 }
 

@@ -17,6 +17,25 @@ import type {
 } from "../automation/types.js";
 import { getCredential } from "../credentials.js";
 
+/**
+ * Client-side HTTP timeout for Kernel API requests.
+ *
+ * The SDK defaults to 60s, but automations are dispatched with `timeout_sec`
+ * values up to 120s (see `addCustomFood`). When the client gives up first the
+ * browser keeps going, so Cronometer commits the change while crono reports
+ * failure — and a retry then duplicates the data. Keep this comfortably above
+ * the largest `timeout_sec` used by any automation.
+ */
+const KERNEL_REQUEST_TIMEOUT_MS = 10 * 60 * 1000;
+
+/**
+ * Lifetime of a remote browser session.
+ *
+ * A single command can spend ~60s logging in before a 120s automation even
+ * starts, so the previous 120s budget could expire mid-operation.
+ */
+const BROWSER_SESSION_TIMEOUT_SEC = 300;
+
 export type KernelClient = AutomationClient;
 export type {
   CustomFoodEntry,
@@ -44,7 +63,7 @@ export async function getKernelClient(): Promise<KernelClient> {
   }
 
   process.env["KERNEL_API_KEY"] = apiKey;
-  const kernel = new Kernel();
+  const kernel = new Kernel({ timeout: KERNEL_REQUEST_TIMEOUT_MS });
 
   return createAutomationClient(createKernelRuntimeFactory(kernel));
 }
@@ -54,7 +73,7 @@ function createKernelRuntimeFactory(kernel: Kernel): AutomationRuntimeFactory {
     const browser = await kernel.browsers.create({
       headless: hasAutoCredentials,
       stealth: true,
-      timeout_seconds: hasAutoCredentials ? 120 : 300,
+      timeout_seconds: BROWSER_SESSION_TIMEOUT_SEC,
     });
 
     return {
