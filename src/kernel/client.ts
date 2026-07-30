@@ -52,8 +52,7 @@ export type {
  * Each operation creates a fresh browser and logs in.
  */
 export async function getKernelClient(): Promise<KernelClient> {
-  const apiKey =
-    process.env["KERNEL_API_KEY"] ?? getCredential("kernel-api-key");
+  const apiKey = getCredential("kernel-api-key");
   if (!apiKey) {
     throw new Error(
       "Kernel API key not found.\n" +

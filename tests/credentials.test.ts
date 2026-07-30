@@ -107,3 +107,54 @@ describe("credentials (encrypted file backend)", () => {
     });
   });
 });
+
+describe("credentials (environment variable overrides)", () => {
+  const ENV_KEYS = [
+    "KERNEL_API_KEY",
+    "CRONO_CRONOMETER_USERNAME",
+    "CRONO_CRONOMETER_PASSWORD",
+  ];
+
+  beforeEach(() => {
+    mkdirSync(testDir, { recursive: true });
+    _resetBackend();
+    _setBackend("file");
+    _setConfigDir(testDir);
+    for (const key of ENV_KEYS) delete process.env[key];
+  });
+
+  afterEach(() => {
+    for (const key of ENV_KEYS) delete process.env[key];
+    _setConfigDir(null);
+    _resetBackend();
+    try {
+      rmSync(testDir, { recursive: true, force: true });
+    } catch {
+      // cleanup best-effort
+    }
+  });
+
+  it("should resolve credentials from env vars without stored values", () => {
+    process.env.KERNEL_API_KEY = "env-key";
+    process.env.CRONO_CRONOMETER_USERNAME = "env@example.com";
+    process.env.CRONO_CRONOMETER_PASSWORD = "env-password";
+
+    expect(getCredential("kernel-api-key")).toBe("env-key");
+    expect(getCredential("cronometer-username")).toBe("env@example.com");
+    expect(getCredential("cronometer-password")).toBe("env-password");
+    expect(hasCredentials()).toBe(true);
+  });
+
+  it("should prefer env vars over stored credentials", () => {
+    setCredential("cronometer-username", "stored@example.com");
+    process.env.CRONO_CRONOMETER_USERNAME = "env@example.com";
+
+    expect(getCredential("cronometer-username")).toBe("env@example.com");
+  });
+
+  it("should fall back to stored credentials when env var is unset", () => {
+    setCredential("cronometer-username", "stored@example.com");
+
+    expect(getCredential("cronometer-username")).toBe("stored@example.com");
+  });
+});

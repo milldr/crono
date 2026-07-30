@@ -109,7 +109,10 @@ export async function exportData(
   const password = getCredential("cronometer-password");
 
   if (!username || !password) {
-    throw new Error("No Cronometer credentials found. Run: crono login");
+    throw new Error(
+      "No Cronometer credentials found. Run `crono login`, or set:\n" +
+        "  CRONO_CRONOMETER_USERNAME and CRONO_CRONOMETER_PASSWORD"
+    );
   }
 
   // Resolve GWT overrides: env vars > config > defaults

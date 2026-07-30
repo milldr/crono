@@ -23,6 +23,17 @@ export type CredentialKey =
 
 const SERVICE_NAME = "crono";
 
+/**
+ * Environment variables that override stored credentials.
+ * Useful for headless/container deployments where `crono login`
+ * cannot be run interactively.
+ */
+const ENV_VARS: Record<CredentialKey, string> = {
+  "kernel-api-key": "KERNEL_API_KEY",
+  "cronometer-username": "CRONO_CRONOMETER_USERNAME",
+  "cronometer-password": "CRONO_CRONOMETER_PASSWORD",
+};
+
 let configDirOverride: string | null = null;
 
 function getConfigDir(): string {
@@ -174,6 +185,8 @@ function fileDelete(key: string): void {
 // -- Public API --
 
 export function getCredential(key: CredentialKey): string | null {
+  const envValue = process.env[ENV_VARS[key]];
+  if (envValue) return envValue;
   return getBackend() === "keyring" ? keyringGet(key) : fileGet(key);
 }
 

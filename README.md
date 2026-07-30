@@ -77,6 +77,14 @@ Set up or update your Kernel API key and Cronometer credentials. If credentials 
 crono login
 ```
 
+**Headless / container deployments:** all credentials can be provided via environment variables instead of `crono login`. Env vars take precedence over stored credentials.
+
+| Variable                    | Credential          |
+| --------------------------- | ------------------- |
+| `KERNEL_API_KEY`            | Kernel.sh API key   |
+| `CRONO_CRONOMETER_USERNAME` | Cronometer email    |
+| `CRONO_CRONOMETER_PASSWORD` | Cronometer password |
+
 ### `crono quick-add`
 
 Add a quick macro entry to your Cronometer diary.
