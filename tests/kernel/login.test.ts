@@ -74,7 +74,19 @@ describe("buildAutoLoginCode", () => {
   it("should click submit button", () => {
     const code = buildAutoLoginCode("user@test.com", "password123");
     expect(code).toContain("submitSelectors");
-    expect(code).toContain(".click()");
+    expect(code).toContain("el.first().click({ timeout: 5000 })");
+  });
+
+  it("should dismiss Cookiebot before submitting login", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    expect(code).toContain("dismissCookieConsent");
+    expect(code).toContain("#CybotCookiebotDialog");
+    expect(code).toContain('button:has-text("OK")');
+  });
+
+  it("should bound each submit click attempt", () => {
+    const code = buildAutoLoginCode("user@test.com", "password123");
+    expect(code).toContain("el.first().click({ timeout: 5000 })");
   });
 
   it("should verify login by checking URL", () => {
