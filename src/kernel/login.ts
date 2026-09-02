@@ -54,6 +54,28 @@ export function buildAutoLoginCode(username: string, password: string): string {
     await page.goto('https://cronometer.com/login/', { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
+    // Cookiebot can cover the login button even though the form is otherwise
+    // ready. Playwright then waits on every submit selector until the outer
+    // automation timeout expires. Dismiss only buttons inside Cookiebot.
+    async function dismissCookieConsent() {
+      const consentSelectors = [
+        '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
+        '#CybotCookiebotDialogBodyButtonAccept',
+        '#CybotCookiebotDialog button:has-text("OK")',
+      ];
+      for (const sel of consentSelectors) {
+        const button = page.locator(sel).filter({ visible: true });
+        if (await button.count() > 0) {
+          await button.first().click({ timeout: 5000 }).catch(() => {});
+          await page.waitForSelector('#CybotCookiebotDialog', {
+            state: 'hidden', timeout: 5000,
+          }).catch(() => {});
+          break;
+        }
+      }
+    }
+    await dismissCookieConsent();
+
     // Wait for login page to load
     await page.waitForSelector('input[type="email"], input[name="username"], input[name="email"], #email, #username', { timeout: 15000 }).catch(() => {});
 
@@ -91,6 +113,10 @@ export function buildAutoLoginCode(username: string, password: string): string {
       return { success: false, loggedIn: false, url: page.url(), error: 'Could not find password input on ' + page.url() };
     }
 
+    // The banner may finish loading after the inputs, so check again directly
+    // before submitting.
+    await dismissCookieConsent();
+
     // Click the LOG IN button
     const submitSelectors = ['#login-button', 'button:has-text("LOG IN")', 'button:has-text("Log In")', 'button[type="submit"]', 'input[type="submit"]'];
     let submitted = false;
@@ -98,7 +124,7 @@ export function buildAutoLoginCode(username: string, password: string): string {
       try {
         const el = page.locator(sel);
         if (await el.count() > 0) {
-          await el.first().click();
+          await el.first().click({ timeout: 5000 });
           submitted = true;
           break;
         }
