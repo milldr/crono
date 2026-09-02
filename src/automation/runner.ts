@@ -26,6 +26,50 @@ import type {
   WeightData,
 } from "./types.js";
 
+const QUICK_ADD_SECONDS_PER_MACRO = 60;
+const QUICK_ADD_SECONDS_PER_DATE_STEP = 2;
+const MAX_QUICK_ADD_DATE_STEPS = 90;
+const AUTO_LOGIN_TIMEOUT_SEC = 120;
+
+/**
+ * Quick-add logs every macro through a separate food-search dialog. A fixed
+ * 60-second timeout can therefore save the first macro and abort while adding
+ * the next one, leaving a partial (and unsafe to retry) diary entry.
+ *
+ * Allow one minute per macro, plus the two-second delay used for each previous
+ * day navigation step in buildQuickAddCode.
+ */
+export function getQuickAddTimeoutSec(
+  entry: MacroEntry,
+  now = new Date()
+): number {
+  const macroCount = [
+    entry.protein,
+    entry.carbs,
+    entry.fat,
+    entry.alcohol,
+  ].filter((value) => value !== undefined).length;
+
+  let dateSteps = 0;
+  if (entry.date) {
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(`${entry.date}T00:00:00`);
+    dateSteps = Math.min(
+      MAX_QUICK_ADD_DATE_STEPS,
+      Math.max(
+        0,
+        Math.round((today.getTime() - target.getTime()) / (24 * 60 * 60 * 1000))
+      )
+    );
+  }
+
+  return (
+    Math.max(1, macroCount) * QUICK_ADD_SECONDS_PER_MACRO +
+    dateSteps * QUICK_ADD_SECONDS_PER_DATE_STEP
+  );
+}
+
 export function createAutomationClient(
   createRuntime: AutomationRuntimeFactory
 ): AutomationClient {
@@ -36,7 +80,7 @@ export function createAutomationClient(
         const data = await executeAutomation<{
           success: boolean;
           error?: string;
-        }>(runtime, buildQuickAddCode(entry), 60);
+        }>(runtime, buildQuickAddCode(entry), getQuickAddTimeoutSec(entry));
         if (!data.success) {
           throw new Error(`Quick add failed: ${data.error ?? "Unknown error"}`);
         }
@@ -196,7 +240,7 @@ async function autoLogin(
     url: string;
     error?: string;
     loginError?: string | null;
-  }>(runtime, buildAutoLoginCode(username, password), 60);
+  }>(runtime, buildAutoLoginCode(username, password), AUTO_LOGIN_TIMEOUT_SEC);
 
   if (!data.loggedIn) {
     const pageError = data.loginError?.toLowerCase() ?? "";
