@@ -27,6 +27,7 @@ import type {
 } from "./types.js";
 
 const QUICK_ADD_SECONDS_PER_MACRO = 60;
+const QUICK_ADD_SETUP_TIMEOUT_SEC = 60;
 const QUICK_ADD_SECONDS_PER_DATE_STEP = 2;
 const MAX_QUICK_ADD_DATE_STEPS = 90;
 const AUTO_LOGIN_TIMEOUT_SEC = 120;
@@ -36,8 +37,9 @@ const AUTO_LOGIN_TIMEOUT_SEC = 120;
  * 60-second timeout can therefore save the first macro and abort while adding
  * the next one, leaving a partial (and unsafe to retry) diary entry.
  *
- * Allow one minute per macro, plus the two-second delay used for each previous
- * day navigation step in buildQuickAddCode.
+ * Allow one minute to load and prepare the diary, one minute per macro, plus
+ * the two-second delay used for each previous day navigation step in
+ * buildQuickAddCode.
  */
 export function getQuickAddTimeoutSec(
   entry: MacroEntry,
@@ -65,6 +67,7 @@ export function getQuickAddTimeoutSec(
   }
 
   return (
+    QUICK_ADD_SETUP_TIMEOUT_SEC +
     Math.max(1, macroCount) * QUICK_ADD_SECONDS_PER_MACRO +
     dateSteps * QUICK_ADD_SECONDS_PER_DATE_STEP
   );

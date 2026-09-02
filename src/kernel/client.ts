@@ -21,7 +21,7 @@ import { getCredential } from "../credentials.js";
  * Client-side HTTP timeout for Kernel API requests.
  *
  * The SDK defaults to 60s, but automations are dispatched with `timeout_sec`
- * values up to 420s (see multi-macro retroactive quick-add). When the client gives up first the
+ * values up to 480s (see multi-macro retroactive quick-add). When the client gives up first the
  * browser keeps going, so Cronometer commits the change while crono reports
  * failure — and a retry then duplicates the data. Keep this comfortably above
  * the largest `timeout_sec` used by any automation.
@@ -32,10 +32,11 @@ const KERNEL_REQUEST_TIMEOUT_MS = 10 * 60 * 1000;
  * Lifetime of a remote browser session.
  *
  * A single command can spend up to 120s logging in before a multi-macro quick-add
- * starts. Quick-add may need up to 420s for four macros plus 90 date steps, so
+ * starts. Quick-add may need up to 480s for setup, four macros, and 90 date
+ * steps, so
  * leave enough room for both login and the operation.
  */
-const BROWSER_SESSION_TIMEOUT_SEC = 600;
+const BROWSER_SESSION_TIMEOUT_SEC = 900;
 
 export type KernelClient = AutomationClient;
 export type {
