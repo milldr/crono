@@ -174,7 +174,30 @@ describe("parseServings", () => {
     expect(entries[1]["Fiber (g)"]).toBe(2.13);
   });
 
-  it("should return empty array for empty CSV", () => {
-    expect(parseServings("")).toEqual([]);
+  it("returns no servings only for a valid header-only export", () => {
+    expect(parseServings(sampleCSV.split("\n")[0])).toEqual([]);
+  });
+
+  it.each(["", "<html>Login required</html>", "Day,Amount\n2026-09-09,37"])(
+    "rejects invalid exports instead of implying entries are absent: %s",
+    (csv) => {
+      expect(() => parseServings(csv)).toThrow("Invalid servings export");
+    }
+  );
+
+  it("preserves separate quick-add rows and amounts for verification", () => {
+    const csv = `Day,Time,Group,Food Name,Amount
+2026-09-09,02:12 PM,Breakfast,"Quick Add, Protein",37 g
+2026-09-09,02:12 PM,Breakfast,"Quick Add, Carbohydrate",58 g
+2026-09-09,02:12 PM,Breakfast,"Quick Add, Fat",38 g`;
+
+    expect(parseServings(csv)).toEqual([
+      expect.objectContaining({ food: "Quick Add, Protein", amount: "37 g" }),
+      expect.objectContaining({
+        food: "Quick Add, Carbohydrate",
+        amount: "58 g",
+      }),
+      expect.objectContaining({ food: "Quick Add, Fat", amount: "38 g" }),
+    ]);
   });
 });

@@ -14,6 +14,10 @@ describe("formatKernelError", () => {
     const result = formatKernelError(error);
     expect(result).toContain("timed out");
     expect(result).toContain("status.kernel.sh");
+    expect(result).toContain(
+      "remote write may still be running or already saved"
+    );
+    expect(result).not.toContain("Try again in a few moments");
   });
 
   it("should format APIConnectionError with cause", () => {

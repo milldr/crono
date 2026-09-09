@@ -64,7 +64,10 @@ export async function getKernelClient(): Promise<KernelClient> {
   }
 
   process.env["KERNEL_API_KEY"] = apiKey;
-  const kernel = new Kernel({ timeout: KERNEL_REQUEST_TIMEOUT_MS });
+  const kernel = new Kernel({
+    timeout: KERNEL_REQUEST_TIMEOUT_MS,
+    maxRetries: 0,
+  });
 
   return createAutomationClient(createKernelRuntimeFactory(kernel));
 }

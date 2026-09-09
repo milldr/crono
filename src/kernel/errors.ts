@@ -21,7 +21,8 @@ export function formatKernelError(error: unknown): string {
     return (
       "Request to Kernel API timed out.\n" +
       "  This usually means the Kernel service is slow or unreachable.\n" +
-      "  Try again in a few moments, or check https://status.kernel.sh"
+      "  A remote write may still be running or already saved. Do not retry a write without confirming its final state.\n" +
+      "  Check https://status.kernel.sh"
     );
   }
 
@@ -48,7 +49,7 @@ export function formatKernelError(error: unknown): string {
   if (error instanceof RateLimitError) {
     return (
       `Kernel API rate limit exceeded (HTTP ${error.status}).\n` +
-      "  Please wait a few minutes and try again."
+      "  Please wait a few minutes. Before retrying a write, confirm the previous operation stopped and did not save data."
     );
   }
 

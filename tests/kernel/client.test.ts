@@ -37,4 +37,13 @@ describe("getKernelClient", () => {
     expect(opts?.timeout).toBeDefined();
     expect(opts?.timeout).toBeGreaterThan(120_000);
   });
+
+  it("disables transport retries that could replay a committed write", async () => {
+    const { getKernelClient } = await import("../../src/kernel/client.js");
+    await getKernelClient();
+
+    expect(await getCtor()).toHaveBeenCalledWith(
+      expect.objectContaining({ maxRetries: 0 })
+    );
+  });
 });

@@ -173,9 +173,13 @@ export function parseExercises(csv: string): ExerciseEntry[] {
 
 export function parseServings(csv: string): ServingEntry[] {
   const rows = parseCSV(csv);
-  if (rows.length < 2) return [];
 
   const headers = rows[0];
+  for (const name of ["Day", "Group", "Food Name", "Amount"]) {
+    if (colIndex(headers, name) === -1) {
+      throw new Error(`Invalid servings export: missing "${name}" column`);
+    }
+  }
   const dayIdx = colIndex(headers, "Day");
   const timeIdx = colIndex(headers, "Time");
   const groupIdx = colIndex(headers, "Group");

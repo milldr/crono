@@ -103,6 +103,10 @@ export async function exportCmd(
         const target = options.meal.toLowerCase();
         entries = entries.filter((e) => e.meal.toLowerCase() === target);
       }
+      if (options.json) {
+        console.log(JSON.stringify(entries, null, 2));
+        return;
+      }
       if (entries.length === 0) {
         if (!silent) {
           const suffix = options.meal ? ` for meal "${options.meal}"` : "";
@@ -110,11 +114,7 @@ export async function exportCmd(
         }
         return;
       }
-      if (options.json) {
-        console.log(JSON.stringify(isRange ? entries : entries, null, 2));
-      } else {
-        formatServings(entries, isRange);
-      }
+      formatServings(entries, isRange);
       return;
     }
 
@@ -155,7 +155,11 @@ export async function exportCmd(
     }
   } catch (error) {
     s?.stop("Failed.");
-    p.log.error(formatKernelError(error));
+    if (silent) {
+      console.error(formatKernelError(error));
+    } else {
+      p.log.error(formatKernelError(error));
+    }
     process.exit(1);
   }
 }
