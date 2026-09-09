@@ -106,6 +106,24 @@ crono quick-add [options]
 
 At least one macro flag (`-p`, `-c`, `-f`, or `-a`) is required.
 
+**Safe execution and verification:** Quick-add is not idempotent and saves each
+macro separately (`Quick Add, Protein`, `Quick Add, Carbohydrate`, `Quick Add, Fat`,
+and `Quick Add, Alcohol`). Wait for the original CLI process to exit; if your
+execution tool returns a session ID, retain it and poll that same session.
+Progress output or a tool's wait deadline is not a completed failure. Never
+launch a second write while the first may still be running.
+
+Take an unfiltered `crono export servings -d YYYY-MM-DD --json` snapshot before
+writing, then compare another snapshot after the process completes. Check each
+requested macro's amount and meal, not the restaurant or sandwich name. Empty
+servings exports produce `[]`; invalid exports fail instead of implying absence.
+Check the exit status and keep stderr visible. A missing row while a write is
+pending does not prove failure. A failed write may have saved only some macros;
+never replay the whole meal after a partial save. If the operation's completion
+or diary state is uncertain, stop and report an unconfirmed outcome rather than
+retrying. The browser SDK's automatic transport retries are disabled to avoid
+replaying non-idempotent operations after a lost response.
+
 **Examples:**
 
 ```bash

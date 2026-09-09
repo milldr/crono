@@ -55,6 +55,9 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     : "Uncategorized";
 
   p.intro("🍎 crono quick-add");
+  p.log.warn(
+    "Non-idempotent write: wait for this process to exit. Progress output or a tool timeout does not mean failure. Do not start another write while this one may still be running."
+  );
 
   const s = p.spinner();
   s.start("Connecting...");
@@ -77,8 +80,11 @@ export async function quickAdd(options: QuickAddOptions): Promise<void> {
     const dateInfo = resolvedDate ? ` on ${resolvedDate}` : "";
     p.outro(`Added: ${parts.join(", ")} → ${mealLabel}${dateInfo}`);
   } catch (error) {
-    s.stop("Failed.");
-    p.log.error(`Failed to add entry: ${formatKernelError(error)}`);
+    s.stop("Write outcome unknown.");
+    p.log.error(`Could not confirm completion: ${formatKernelError(error)}`);
+    p.log.warn(
+      "Some or all macros may already be saved. Do not retry the whole meal. After the original operation has stopped, verify every requested Quick Add macro and amount on the target date. An empty export alone does not prove the write failed. If the outcome remains uncertain, report it and stop."
+    );
     process.exit(1);
   }
 }
