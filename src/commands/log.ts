@@ -50,8 +50,13 @@ export async function log(name: string, options: LogOptions): Promise<void> {
     s.stop("Done.");
     p.outro(`Logged: ${name} → ${mealLabel}`);
   } catch (error) {
-    s.stop("Failed.");
-    p.log.error(`Failed to log food: ${formatKernelError(error)}`);
+    s.stop("Unconfirmed.");
+    p.log.error(
+      `Food logging outcome unconfirmed: ${formatKernelError(error)}`
+    );
+    p.log.warn(
+      "Do not retry until the original operation has stopped and a fresh unfiltered export for the exact diary date confirms no entry was saved. A timeout is not proof that the write failed."
+    );
     process.exit(1);
   }
 }

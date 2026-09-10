@@ -128,7 +128,7 @@ export function createAutomationClient(
         const data = await executeAutomation<{
           success: boolean;
           error?: string;
-        }>(runtime, buildAddCustomFoodCode(entry), 120);
+        }>(runtime, buildAddCustomFoodCode(entry), entry.log ? 300 : 120);
         if (!data.success) {
           throw new Error(
             `Custom food creation failed: ${data.error ?? "Unknown error"}`
@@ -141,7 +141,7 @@ export function createAutomationClient(
         const data = await executeAutomation<{
           success: boolean;
           error?: string;
-        }>(runtime, buildLogFoodCode(entry), 60);
+        }>(runtime, buildLogFoodCode(entry), 180);
         if (!data.success) {
           throw new Error(
             `Food logging failed: ${data.error ?? "Unknown error"}`

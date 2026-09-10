@@ -37,12 +37,12 @@ export interface ServingEntry {
   meal: string;
   food: string;
   amount: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
+  calories: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
   category: string;
-  [key: string]: string | number;
+  [key: string]: string | number | null;
 }
 
 /** Parse a CSV string into rows of string arrays. Handles quoted fields. */
@@ -92,6 +92,12 @@ function num(value: string | undefined): number {
   if (!value || value.trim() === "") return 0;
   const n = parseFloat(value.trim());
   return isNaN(n) ? 0 : n;
+}
+
+function optionalNutrient(value: string | undefined): number | null {
+  if (value === undefined || value.trim() === "") return null;
+  const parsed = Number(value.trim());
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function parseNutrition(csv: string): NutritionEntry[] {
@@ -205,10 +211,10 @@ export function parseServings(csv: string): ServingEntry[] {
       meal: row[groupIdx]?.trim() ?? "",
       food: row[foodIdx]?.trim() ?? "",
       amount: row[amountIdx]?.trim() ?? "",
-      calories: num(row[energyIdx]),
-      protein: num(row[proteinIdx]),
-      carbs: num(row[carbsIdx]),
-      fat: num(row[fatIdx]),
+      calories: optionalNutrient(row[energyIdx]),
+      protein: optionalNutrient(row[proteinIdx]),
+      carbs: optionalNutrient(row[carbsIdx]),
+      fat: optionalNutrient(row[fatIdx]),
       category: row[categoryIdx]?.trim() ?? "",
     };
 

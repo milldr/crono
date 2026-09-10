@@ -140,6 +140,29 @@ describe("parseBiometrics", () => {
 });
 
 describe("parseServings", () => {
+  it("does not invent zero nutrients when the live export omits them", () => {
+    const [entry] = parseServings(
+      'Day,Time,Group,Food Name,Amount,Category\n2026-09-10,12:46 PM,Lunch,"Gomez, Buffalo Chicken Turtle with Ranch",1.00 serving,Custom'
+    );
+    expect(entry).toMatchObject({
+      calories: null,
+      protein: null,
+      carbs: null,
+      fat: null,
+    });
+  });
+
+  it("distinguishes genuine zero from missing or invalid nutrient values", () => {
+    const [entry] = parseServings(
+      "Day,Group,Food Name,Amount,Energy (kcal),Protein (g),Carbs (g),Fat (g)\n2026-09-10,Lunch,Test,1 serving,0,,invalid,Infinity"
+    );
+    expect(entry).toMatchObject({
+      calories: 0,
+      protein: null,
+      carbs: null,
+      fat: null,
+    });
+  });
   const sampleCSV = `Day,Time,Group,Food Name,Amount,Energy (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Sodium (mg),Category
 2026-02-11,07:30 PM,Dinner,"Beef Steak, Tenderloin",150.00 g,306,46.01,0,13.5,0,61.5,"Beef Products"
 2026-02-11,12:30 PM,Lunch,"Cabbage, Raw",95.00 g,26.6,0.91,6.06,0.04,2.13,15.2,"Vegetables and Vegetable Products"`;

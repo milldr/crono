@@ -64,3 +64,58 @@ describe("quick-add automation timeouts", () => {
     expect(close).toHaveBeenCalledOnce();
   });
 });
+
+describe("food write automation", () => {
+  it.each([
+    ["create", 120],
+    ["create-and-log", 300],
+    ["log", 180],
+  ])("budgets %s independently of login", async (operation, timeout) => {
+    const execute = vi
+      .fn()
+      .mockResolvedValueOnce({ success: true, result: { loggedIn: true } })
+      .mockResolvedValueOnce({ success: true, result: { success: true } });
+    const close = vi.fn();
+    const client = createAutomationClient(async () => ({ execute, close }));
+    if (operation === "log") {
+      await client.logFood({
+        name: "Gomez, Buffalo Chicken Turtle with Ranch",
+        meal: "Lunch",
+      });
+    } else {
+      await client.addCustomFood({
+        name: "Test Food",
+        protein: 60,
+        log: operation === "create-and-log" ? "Lunch" : undefined,
+      });
+    }
+    expect(execute.mock.calls.map((call) => call[1])).toEqual([30, timeout]);
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it.each(["create", "log"])(
+    "does not replay %s after an ambiguous timeout",
+    async (operation) => {
+      const execute = vi
+        .fn()
+        .mockResolvedValueOnce({ success: true, result: { loggedIn: true } })
+        .mockResolvedValueOnce({
+          success: false,
+          error: "The operation was aborted due to timeout",
+        });
+      const close = vi.fn();
+      const client = createAutomationClient(async () => ({ execute, close }));
+      const result =
+        operation === "create"
+          ? client.addCustomFood({
+              name: "Test Food",
+              protein: 60,
+              log: "Lunch",
+            })
+          : client.logFood({ name: "Test Food", meal: "Lunch" });
+      await expect(result).rejects.toThrow("aborted due to timeout");
+      expect(execute).toHaveBeenCalledTimes(2);
+      expect(close).toHaveBeenCalledOnce();
+    }
+  );
+});

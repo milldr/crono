@@ -81,8 +81,11 @@ export async function addCustomFood(
       p.outro(`Created custom food: ${name} (${macroDisplay})`);
     }
   } catch (error) {
-    s.stop("Failed.");
-    p.log.error(`Failed to create custom food: ${formatKernelError(error)}`);
+    s.stop("Unconfirmed.");
+    p.log.error(`Custom food outcome unconfirmed: ${formatKernelError(error)}`);
+    p.log.warn(
+      "The food may have been saved even if diary logging did not finish. Do not recreate it or retry logging until the original operation has stopped and both the food catalog and exact-date diary have been checked. An absent diary row does not prove food creation failed."
+    );
     process.exit(1);
   }
 }

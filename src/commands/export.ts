@@ -198,16 +198,26 @@ function formatServings(entries: ServingEntry[], isRange: boolean): void {
   for (const e of entries) {
     const prefix = datePrefix ? `${e.date} ` : "";
     p.log.info(
-      `${prefix}${e.time} | ${e.meal} | ${e.food} | ${e.amount} | ${e.calories} kcal | P: ${e.protein}g  C: ${e.carbs}g  F: ${e.fat}g`
+      `${prefix}${e.time} | ${e.meal} | ${e.food} | ${e.amount} | ${e.calories ?? "unknown"} kcal | P: ${e.protein ?? "unknown"}g  C: ${e.carbs ?? "unknown"}g  F: ${e.fat ?? "unknown"}g`
     );
   }
 
   // Totals (useful when filtering by meal or showing one day)
   if (entries.length > 1) {
-    const totalCal = entries.reduce((s, e) => s + e.calories, 0);
-    const totalP = entries.reduce((s, e) => s + e.protein, 0);
-    const totalC = entries.reduce((s, e) => s + e.carbs, 0);
-    const totalF = entries.reduce((s, e) => s + e.fat, 0);
+    if (
+      entries.some((e) =>
+        [e.calories, e.protein, e.carbs, e.fat].includes(null)
+      )
+    ) {
+      p.log.info(
+        "Nutrition totals unavailable: export omits or contains invalid nutrient values."
+      );
+      return;
+    }
+    const totalCal = entries.reduce((s, e) => s + (e.calories ?? 0), 0);
+    const totalP = entries.reduce((s, e) => s + (e.protein ?? 0), 0);
+    const totalC = entries.reduce((s, e) => s + (e.carbs ?? 0), 0);
+    const totalF = entries.reduce((s, e) => s + (e.fat ?? 0), 0);
     p.log.info("───");
     p.log.info(
       `Total: ${totalCal.toFixed(0)} kcal | P: ${totalP.toFixed(1)}g  C: ${totalC.toFixed(1)}g  F: ${totalF.toFixed(1)}g`

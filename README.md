@@ -393,7 +393,7 @@ crono export <type> [options]
 | Type         | Granularity        | Description                                                                                   |
 | ------------ | ------------------ | --------------------------------------------------------------------------------------------- |
 | `nutrition`  | Daily totals       | Aggregated calories + 60+ nutrient columns (vitamins, minerals, amino acids, omega 3/6, etc.) |
-| `servings`   | Per food entry     | Time, meal, food name, amount, full nutrient breakdown — answers "what did I have for dinner" |
+| `servings`   | Per food entry     | Time, meal, food name, amount, and nutrient columns when supplied by Cronometer               |
 | `exercises`  | Per exercise entry | Time, exercise name, duration, calories burned, group                                         |
 | `biometrics` | Per measurement    | Weight, BP, plus anything Apple Health pushes in (heart rate, HRV, sleep)                     |
 
@@ -408,6 +408,12 @@ crono export <type> [options]
 |      | `--json`          | Output as JSON                                                          |
 
 `-d` and `-r` are mutually exclusive. `--csv` and `--json` are mutually exclusive.
+
+Cronometer may return a servings CSV with no nutrient columns. In that case,
+JSON nutrient fields are `null`, not zero, and text output reports unknown
+values without inventing totals. Blank or invalid nutrient values are also
+unknown. Use the live food details and diary to verify nutrition when the
+export omits it; do not treat `null` as a zero-calorie food.
 
 **Examples:**
 
@@ -428,7 +434,7 @@ crono export servings -m Dinner
 # Yesterday's full food log
 crono export servings -d yesterday
 
-# Last 7 days of food entries as JSON (each entry includes all 60+ nutrient columns)
+# Last 7 days of food entries as JSON (includes nutrient columns when available)
 crono export servings -r 7d --json
 
 # Today's exercises
@@ -476,6 +482,18 @@ export CRONO_GWT_HEADER=<new-value>
 
 ## Development
 
+Food writes are non-idempotent. If `add custom-food --log` times out, the
+custom food may already exist even when no diary entry is visible. Treat the
+outcome as **unconfirmed**: wait for the original operation to stop, check the
+food catalog, and compare a fresh unfiltered servings export for the exact diary
+date with your pre-write baseline before considering any retry. Never recreate
+the food based only on a missing diary row.
+
+Food-dialog actions skip hidden controls and use bounded waits. Standalone
+logging has a 180-second operation budget; custom-food creation has 120 seconds,
+or 300 seconds when combined with logging. These budgets exclude login time;
+increasing them does not make retries safe.
+
 ```bash
 git clone https://github.com/milldr/crono.git
 cd crono
@@ -492,6 +510,13 @@ npm test
 
 # Build
 npm run build
+```
+
+For the unit suite in an authenticated shell, exclude credential overrides so
+the credential-store tests remain isolated:
+
+```bash
+env -u KERNEL_API_KEY -u CRONO_CRONOMETER_USERNAME -u CRONO_CRONOMETER_PASSWORD npm test
 ```
 
 ## Support
