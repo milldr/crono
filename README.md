@@ -512,18 +512,6 @@ npm test
 npm run build
 ```
 
-Run the isolated browser regression against the compiled food-write generators:
-
-```bash
-npm run test:food-browser
-```
-
-This requires a Playwright Chromium installation, or an existing Chromium binary
-specified by `CHRONO_TEST_CHROMIUM=/path/to/chromium`. All browser requests are
-intercepted by a local HTML fixture; no credentials or real Cronometer writes are
-used. The fixture exercises hidden duplicate controls, exact food selection,
-custom-food macro saving, and exactly one diary submission per operation.
-
 For the unit suite in an authenticated shell, exclude credential overrides so
 the credential-store tests remain isolated:
 
