@@ -72,9 +72,9 @@ export function buildAddCustomFoodCode(entry: CustomFoodEntry): string {
     async function clickFirst(selectors, description) {
       for (const sel of selectors) {
         try {
-          const el = page.locator(sel);
+          const el = page.locator(sel).filter({ visible: true });
           if (await el.count() > 0) {
-            await el.first().click();
+            await el.first().click({ timeout: 3000 });
             return true;
           }
         } catch {}
@@ -195,6 +195,7 @@ export function buildAddCustomFoodCode(entry: CustomFoodEntry): string {
 ${buildFoodDialogCode({
   errorPrefix: "Food created but ",
   requireServingSize: false,
+  verifyDialogDismissed: true,
 })}
     }
 

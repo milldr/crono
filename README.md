@@ -476,6 +476,18 @@ export CRONO_GWT_HEADER=<new-value>
 
 ## Development
 
+Food writes are non-idempotent. If `add custom-food --log` times out, the
+custom food may already exist even when no diary entry is visible. Treat the
+outcome as **unconfirmed**: wait for the original operation to stop, check the
+food catalog, and compare a fresh unfiltered servings export for the exact diary
+date with your pre-write baseline before considering any retry. Never recreate
+the food based only on a missing diary row.
+
+Food-dialog actions skip hidden controls and use bounded waits. Standalone
+logging has a 180-second operation budget; custom-food creation has 120 seconds,
+or 300 seconds when combined with logging. These budgets exclude login time;
+increasing them does not make retries safe.
+
 ```bash
 git clone https://github.com/milldr/crono.git
 cd crono
@@ -492,6 +504,25 @@ npm test
 
 # Build
 npm run build
+```
+
+Run the isolated browser regression against the compiled food-write generators:
+
+```bash
+npm run test:food-browser
+```
+
+This requires a Playwright Chromium installation, or an existing Chromium binary
+specified by `CHRONO_TEST_CHROMIUM=/path/to/chromium`. All browser requests are
+intercepted by a local HTML fixture; no credentials or real Cronometer writes are
+used. The fixture exercises hidden duplicate controls, exact food selection,
+custom-food macro saving, and exactly one diary submission per operation.
+
+For the unit suite in an authenticated shell, exclude credential overrides so
+the credential-store tests remain isolated:
+
+```bash
+env -u KERNEL_API_KEY -u CRONO_CRONOMETER_USERNAME -u CRONO_CRONOMETER_PASSWORD npm test
 ```
 
 ## Support

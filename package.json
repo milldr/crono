@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:food-browser": "npm run build && node scripts/test-food-browser.mjs",
     "test:watch": "vitest",
     "prepare": "husky"
   },

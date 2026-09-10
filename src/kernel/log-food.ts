@@ -45,9 +45,9 @@ export function buildLogFoodCode(entry: LogFoodEntry): string {
     async function clickFirst(selectors, description) {
       for (const sel of selectors) {
         try {
-          const el = page.locator(sel);
+          const el = page.locator(sel).filter({ visible: true });
           if (await el.count() > 0) {
-            await el.first().click();
+            await el.first().click({ timeout: 3000 });
             return true;
           }
         } catch {}
@@ -55,7 +55,7 @@ export function buildLogFoodCode(entry: LogFoodEntry): string {
       return false;
     }
 
-${buildFoodDialogCode({ updateServingSize: true })}
+${buildFoodDialogCode({ updateServingSize: true, verifyDialogDismissed: true })}
 
     return { success: true };
   `;

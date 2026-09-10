@@ -51,7 +51,7 @@ export function buildFoodDialogCode(options: FoodDialogOptions = {}): string {
     async function rightClickFirst(selectors, description) {
       for (const sel of selectors) {
         try {
-          const el = page.locator(sel);
+          const el = page.locator(sel).filter({ visible: true });
           if (await el.count() > 0) {
             await el.first().click({ button: 'right', timeout: 5000 });
             return true;
@@ -122,11 +122,11 @@ export function buildFoodDialogCode(options: FoodDialogOptions = {}): string {
     let searched = false;
     for (const sel of searchSelectors) {
       try {
-        const el = page.locator(sel);
+        const el = page.locator(sel).filter({ visible: true });
         if (await el.count() > 0) {
-          await el.first().click();
+          await el.first().click({ timeout: 3000 });
           await page.waitForTimeout(200);
-          await el.first().fill('');
+          await el.first().fill('', { timeout: 3000 });
           await page.keyboard.type(${foodNameVar}, { delay: 50 });
           searched = true;
           break;
@@ -140,13 +140,14 @@ export function buildFoodDialogCode(options: FoodDialogOptions = {}): string {
 
     // Click SEARCH
     await clickFirst([
-      'text="SEARCH")',
       'button:has-text("SEARCH")',
       'button:has-text("Search")',
+      'text="SEARCH"',
     ], 'SEARCH button');
 
     // Wait for search results to appear
-    const resultsAppeared = await page.waitForSelector('td', { timeout: 8000 })
+    const resultsAppeared = await page.getByText(${foodNameVar}, { exact: true })
+      .filter({ visible: true }).first().waitFor({ state: 'visible', timeout: 8000 })
       .then(() => true)
       .catch(() => false);
     if (!resultsAppeared) {
@@ -179,7 +180,7 @@ export function buildFoodDialogCode(options: FoodDialogOptions = {}): string {
 
       console.log('[crono food-dialog] found matching search result at row ' + i + ': ' + description);
       // GWT rows don't respond to click(), need to focus and press Enter
-      await row.focus();
+      await row.focus({ timeout: 3000 });
       await page.waitForTimeout(300);
       await page.keyboard.press('Enter');
       resultClicked = true;
