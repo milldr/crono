@@ -23,7 +23,7 @@ const fixture = `<!doctype html><html><body>
 <button onclick="document.querySelector('#results').hidden=false">SEARCH</button>
 <table id="results" hidden><tr tabindex="0" onkeydown="if(event.key==='Enter')document.querySelector('#details').hidden=false"><td>${foodName}</td><td>Custom</td></tr></table>
 <section id="details" hidden><span>Serving Size</span><input value="1">
-<button onclick="window.writes=(window.writes||0)+1;document.querySelector('#dialog').hidden=true">Add to Diary</button></section>
+<button onclick="window.writes=(window.writes||0)+1;document.querySelector('#dialog').hidden=true">ADD TO DIARY</button></section>
 </section></body></html>`;
 
 const browser = await chromium.launch({

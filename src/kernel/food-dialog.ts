@@ -209,7 +209,7 @@ ${buildServingSizeCode({ errorPrefix, foodNameVar, itemNameVar, requireServingSi
     const buttonClicked = await page.evaluate(() => {
       const buttons = document.querySelectorAll('button');
       for (const btn of buttons) {
-        if (btn.textContent && btn.textContent.trim() === 'Add to Diary' && btn.offsetParent !== null) {
+        if (btn.textContent && btn.textContent.trim().toLowerCase() === 'add to diary' && btn.offsetParent !== null && !btn.disabled) {
           btn.click();
           return true;
         }

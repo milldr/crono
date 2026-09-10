@@ -32,6 +32,20 @@ describe("servings export output", () => {
     );
   });
 
+  it("reports omitted nutrition as null in machine-readable output", async () => {
+    vi.mocked(exportData).mockResolvedValue(
+      "Day,Group,Food Name,Amount\n2026-09-10,Lunch,Gomez,1 serving"
+    );
+    await exportCmd("servings", { date: "2026-09-10", json: true });
+    const output = JSON.parse(vi.mocked(console.log).mock.calls[0][0]);
+    expect(output[0]).toMatchObject({
+      calories: null,
+      protein: null,
+      carbs: null,
+      fat: null,
+    });
+  });
+
   it("emits an explicit array when a meal filter has no matches", async () => {
     vi.mocked(exportData).mockResolvedValue(
       'Day,Group,Food Name,Amount\n2026-09-09,Lunch,"Quick Add, Protein",37 g'

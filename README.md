@@ -393,7 +393,7 @@ crono export <type> [options]
 | Type         | Granularity        | Description                                                                                   |
 | ------------ | ------------------ | --------------------------------------------------------------------------------------------- |
 | `nutrition`  | Daily totals       | Aggregated calories + 60+ nutrient columns (vitamins, minerals, amino acids, omega 3/6, etc.) |
-| `servings`   | Per food entry     | Time, meal, food name, amount, full nutrient breakdown — answers "what did I have for dinner" |
+| `servings`   | Per food entry     | Time, meal, food name, amount, and nutrient columns when supplied by Cronometer               |
 | `exercises`  | Per exercise entry | Time, exercise name, duration, calories burned, group                                         |
 | `biometrics` | Per measurement    | Weight, BP, plus anything Apple Health pushes in (heart rate, HRV, sleep)                     |
 
@@ -408,6 +408,12 @@ crono export <type> [options]
 |      | `--json`          | Output as JSON                                                          |
 
 `-d` and `-r` are mutually exclusive. `--csv` and `--json` are mutually exclusive.
+
+Cronometer may return a servings CSV with no nutrient columns. In that case,
+JSON nutrient fields are `null`, not zero, and text output reports unknown
+values without inventing totals. Blank or invalid nutrient values are also
+unknown. Use the live food details and diary to verify nutrition when the
+export omits it; do not treat `null` as a zero-calorie food.
 
 **Examples:**
 
@@ -428,7 +434,7 @@ crono export servings -m Dinner
 # Yesterday's full food log
 crono export servings -d yesterday
 
-# Last 7 days of food entries as JSON (each entry includes all 60+ nutrient columns)
+# Last 7 days of food entries as JSON (includes nutrient columns when available)
 crono export servings -r 7d --json
 
 # Today's exercises
