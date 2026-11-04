@@ -119,6 +119,7 @@ ${buildFoodDialogCode({
   alwaysUpdateServingSize: true,
   updateServingSize: true,
   verifyDialogDismissed: true,
+  verifyNewEntry: true,
 })}
     }
 
