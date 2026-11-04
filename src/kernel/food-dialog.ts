@@ -9,8 +9,9 @@ export interface FoodDialogOptions {
   updateServingSize?: boolean;
   verifyDialogDismissed?: boolean;
   /**
-   * Count the food's diary entries before and after adding, and fail unless a
-   * new entry appeared. Guards against edits landing on an existing entry.
+   * After adding, fail unless the food's diary entry count increased. Guards
+   * against edits landing on an existing entry. (The pre-add count is always
+   * taken so dialog retries never duplicate an entry.)
    */
   verifyNewEntry?: boolean;
 }
@@ -91,7 +92,7 @@ export function buildFoodDialogCode(options: FoodDialogOptions = {}): string {
       ? `'${addToDiaryError}'`
       : `'${addToDiaryError} for "' + ${itemNameVar} + '"'`;
 
-  const dialogClosedError = `'Add Food dialog closed before details loaded after selecting "' + ${foodNameVar} + '"'`;
+  const dialogClosedError = `'${errorPrefix}Add Food dialog closed before details loaded after selecting "' + ${foodNameVar} + '"'`;
 
   return `
     // Helper: right-click an element from a list of selectors
@@ -156,13 +157,11 @@ ${FIND_ADD_FOOD_DIALOG}
         await page.waitForTimeout(250);
       }
     }
-${verifyNewEntry ? buildCountDiaryEntriesCode() : ""}
-    ${
-      verifyNewEntry
-        ? `const entriesBefore = await countDiaryEntries(${foodNameVar});
-    console.log('[crono food-dialog] existing diary entries for ' + ${foodNameVar} + ': ' + entriesBefore);`
-        : ""
-    }
+${buildCountDiaryEntriesCode()}
+    // Snapshot existing entries so a retry never re-adds a food that an early
+    // dialog close already logged
+    const entriesBefore = await countDiaryEntries(${foodNameVar});
+    console.log('[crono food-dialog] existing diary entries for ' + ${foodNameVar} + ': ' + entriesBefore);
     let detailsLoaded = false;
     let dialogError = '';
     for (let dialogAttempt = 0; dialogAttempt < ${ADD_FOOD_DIALOG_ATTEMPTS} && !detailsLoaded; dialogAttempt++) {
@@ -174,16 +173,12 @@ ${verifyNewEntry ? buildCountDiaryEntriesCode() : ""}
           .then(() => true).catch(() => false);
         await page.mouse.click(1, 1);
         await page.waitForTimeout(1500);
-${
-  verifyNewEntry
-    ? `        // If the early close logged the food anyway, re-adding would duplicate it
+        // If the early close logged the food anyway, re-adding would duplicate it
         const entriesNow = await countDiaryEntries(${foodNameVar});
         if (entriesNow !== entriesBefore) {
           return { success: false, error: '${errorPrefix}Add Food dialog closed early and the diary changed for "' + ${foodNameVar} + '" (' + entriesBefore + ' -> ' + entriesNow + ' entries); not retrying to avoid a duplicate' };
         }
-`
-    : ""
-}      }
+      }
 
       // Right-click meal category with retry (GWT context menus can be flaky
       // and meal labels may not render immediately)
@@ -364,9 +359,9 @@ ${verifyNewEntry ? buildVerifyNewEntryCode({ errorPrefix, foodNameVar, itemNameV
 }
 
 /**
- * In-page diary entry counter. Counts the deepest visible elements outside the
- * Add Food dialog whose text is exactly the food name, which is independent of
- * how Cronometer lays out diary rows. Only the delta matters.
+ * In-page diary entry counter. Counts visible elements outside the Add Food
+ * dialog that directly hold a text node exactly matching the food name, which
+ * is independent of how Cronometer lays out diary rows. Only the delta matters.
  */
 function buildCountDiaryEntriesCode(): string {
   return `
@@ -374,14 +369,20 @@ function buildCountDiaryEntriesCode(): string {
       return page.evaluate(({ name }) => {
 ${FIND_ADD_FOOD_DIALOG}
           const dialog = findAddFoodDialog();
-          let count = 0;
-          for (const el of document.body.querySelectorAll('*')) {
-            if (dialog && dialog.contains(el)) continue;
-            if (!el.textContent || el.textContent.trim() !== name) continue;
-            if (Array.from(el.children).some((child) => child.textContent && child.textContent.trim() === name)) continue;
-            if (isShown(el)) count++;
+          const matches = new Set();
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) =>
+              node.textContent && node.textContent.trim() === name
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT,
+          });
+          let node;
+          while ((node = walker.nextNode())) {
+            const el = node.parentElement;
+            if (!el || (dialog && dialog.contains(el)) || !isShown(el)) continue;
+            matches.add(el);
           }
-          return count;
+          return matches.size;
       }, { op: 'countDiaryEntries', name });
     }
 `;

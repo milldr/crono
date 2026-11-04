@@ -242,7 +242,28 @@ describe("Add Food dialog scoping", () => {
   });
 
   it("only verifies new entries when requested", () => {
-    expect(code).toContain("countDiaryEntries");
-    expect(buildFoodDialogCode()).not.toContain("countDiaryEntries");
+    expect(code).toContain("did not create a new");
+    expect(buildFoodDialogCode()).not.toContain("did not create a new");
+  });
+
+  it("always guards retries against duplicating an early-committed entry", () => {
+    const logCode = buildFoodDialogCode({ updateServingSize: true });
+    expect(logCode).toContain("const entriesBefore = await countDiaryEntries");
+    expect(logCode).toContain("not retrying to avoid a duplicate");
+  });
+
+  it("prefixes the dialog-closed error", () => {
+    const prefixed = buildFoodDialogCode({ errorPrefix: "Food created but " });
+    expect(prefixed).toContain(
+      "'Food created but Add Food dialog closed before details loaded"
+    );
+  });
+
+  it("counts diary entries via text nodes instead of every element", () => {
+    const counter = code.slice(
+      code.indexOf("async function countDiaryEntries")
+    );
+    expect(counter).toContain("NodeFilter.SHOW_TEXT");
+    expect(counter).not.toContain("querySelectorAll('*')");
   });
 });
