@@ -15,25 +15,25 @@ import type { AutomationRuntime } from "../../src/automation/types.js";
 describe("getQuickAddTimeoutSec", () => {
   const now = new Date("2026-09-02T12:00:00");
 
-  it("allows setup time plus one minute for a single macro", () => {
-    expect(getQuickAddTimeoutSec({ protein: 45 }, now)).toBe(120);
+  it("allows setup time plus the per-macro budget for a single macro", () => {
+    expect(getQuickAddTimeoutSec({ protein: 45 }, now)).toBe(210);
   });
 
   it("scales the timeout for every macro dialog", () => {
     expect(
       getQuickAddTimeoutSec({ protein: 45, carbs: 90, fat: 55 }, now)
-    ).toBe(240);
+    ).toBe(510);
   });
 
   it("includes the delay for previous-day navigation", () => {
     expect(getQuickAddTimeoutSec({ fat: 55, date: "2026-08-30" }, now)).toBe(
-      126
+      216
     );
   });
 
   it("caps date navigation at the same 90 steps as the automation", () => {
     expect(getQuickAddTimeoutSec({ protein: 1, date: "2025-01-01" }, now)).toBe(
-      300
+      390
     );
   });
 });
@@ -60,7 +60,7 @@ describe("quick-add automation timeouts", () => {
 
     await client.addQuickEntry({ protein: 45, carbs: 90, fat: 55 });
 
-    expect(execute.mock.calls.map((call) => call[1])).toEqual([30, 120, 240]);
+    expect(execute.mock.calls.map((call) => call[1])).toEqual([30, 120, 510]);
     expect(close).toHaveBeenCalledOnce();
   });
 });

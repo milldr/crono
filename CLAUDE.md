@@ -105,9 +105,10 @@ Each macro (protein, carbs, fat, alcohol) is added as a separate "Quick Add" foo
 4. Click "Add Food..." in context menu
 5. Search for the macro (e.g. "Quick Add, Protein")
 6. Click SEARCH, select the result
-7. Enter serving size in grams
-8. Click "ADD TO DIARY"
-9. Repeat for each macro
+7. Wait (up to 10s) for the food details to load inside the dialog; if the dialog closes early or stalls, re-open and re-select (up to 3 attempts)
+8. Enter serving size in grams (inputs and buttons are scoped to the Add Food dialog, never the diary behind it)
+9. Click "ADD TO DIARY" and confirm a new diary entry appeared (existing entries of the same macro are never edited)
+10. Repeat for each macro
 
 **Date navigation note:** Cronometer's GWT hash routing does not support `?date=` query params. Date changes use prev-day arrow clicks (same approach as `diary` and `weight` commands), capped at 90 days back.
 

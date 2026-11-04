@@ -26,7 +26,7 @@ import type {
   WeightData,
 } from "./types.js";
 
-const QUICK_ADD_SECONDS_PER_MACRO = 60;
+const QUICK_ADD_SECONDS_PER_MACRO = 150;
 const QUICK_ADD_SETUP_TIMEOUT_SEC = 60;
 const QUICK_ADD_SECONDS_PER_DATE_STEP = 2;
 const MAX_QUICK_ADD_DATE_STEPS = 90;
@@ -37,9 +37,10 @@ const AUTO_LOGIN_TIMEOUT_SEC = 120;
  * 60-second timeout can therefore save the first macro and abort while adding
  * the next one, leaving a partial (and unsafe to retry) diary entry.
  *
- * Allow one minute to load and prepare the diary, one minute per macro, plus
- * the two-second delay used for each previous day navigation step in
- * buildQuickAddCode.
+ * Allow one minute to load and prepare the diary, two and a half minutes per
+ * macro (each macro may re-open the Add Food dialog up to three times if it
+ * closes before the food details load), plus the two-second delay used for
+ * each previous day navigation step in buildQuickAddCode.
  */
 export function getQuickAddTimeoutSec(
   entry: MacroEntry,
